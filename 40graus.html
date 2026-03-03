@@ -2252,28 +2252,14 @@ function gerarMensagemWhatsApp() {
         
     });
 
-    // 👉 FRETE (caso seja entrega)
-    const taxa = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
     
-    mensagem += `\n━━━━ *RESUMO* ━━━━\n`;
-    mensagem += `🍽️ *Subtotal itens: R$ ${totalPratos.toFixed(2)}*\n`;
-    
-    if (taxa > 0) {
-        mensagem += `🛵 *Frete: R$ ${taxa.toFixed(2)}*\n`;
-    }
-    
-    mensagem += `━━━━━━━━━━━━━━━━━━\n`;
-    mensagem += `💰 *TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}*`;
-    
-    return mensagem;
-}
 
     const taxa = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
     mensagem += `\n━━━━━━ *TOTAL DO PEDIDO* ━━━━━━\n`;
     mensagem += `💰 *TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}*`;
     
     return mensagem;
-
+}
 
         // ===== ENVIAR WHATSAPP =====
         function enviarWhatsApp() {
@@ -2461,7 +2447,7 @@ document.getElementById('valorPrato').addEventListener('change', function() {
         });
 });
 
-// ===== WINDOW ONLOAD =====
+// ===== WINDOW dONLOAD =====
 window.onload = function() {
     carregarDados();
     carregarEnderecosLocalStorage();
