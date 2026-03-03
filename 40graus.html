@@ -2181,73 +2181,82 @@
             return total + taxa;
         }
 
-        function gerarMensagemWhatsApp() {
-            const nome = document.getElementById('nomeCliente').value;
-            let mensagem = `🍽️ *NOVO PEDIDO - ${document.getElementById('nomeRestaurante').textContent}* 🍽️\n\n`;
-            mensagem += `👤 *Cliente:* ${nome}\n`;
-            
-            if (document.getElementById('tipoEntrega').value === 'entrega') {
-                mensagem += `📍 *Endereço:* ${document.getElementById('rua').value}, ${document.getElementById('numero').value}`;
-                if (document.getElementById('complemento').value) {
-                    mensagem += ` - ${document.getElementById('complemento').value}`;
-                }
-                mensagem += `\n🏘️ *Bairro:* ${document.getElementById('bairro').value}`;
-                mensagem += `\n🏙️ *Cidade:* ${document.getElementById('cidade').value}`;
-            } else {
-                mensagem += `🏃 *Retirada no local*\n`;
-            }
-
-            mensagem += `\n💳 *Pagamento:* ${document.getElementById('pagamento').value.toUpperCase()}`;
-            
-            if (document.getElementById('pagamento').value === 'dinheiro' && document.getElementById('trocoValor').value) {
-                mensagem += `\n💰 *Troco:* R$ ${parseFloat(document.getElementById('trocoValor').value).toFixed(2)}`;
-            }
-
-            mensagem += `\n\n📋 *ITENS:*\n`;
-            
-            const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
-            let totalPratos = 0;
-
-            pedidosAtuais.forEach((prato, idx) => {
-                mensagem += `\n*REFEIÇÂO ${idx + 1}*\n`;
-                mensagem += `🥩 Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
-                mensagem += `🍚 Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
-                if (prato.feijoes.length) mensagem += `🫘 Feijão: ${prato.feijoes.join(', ')}\n`;
-                if (prato.saladas.length) mensagem += `🥗 Salada: ${prato.saladas.join(', ')}\n`;
-                if (prato.guarnicoes.length) mensagem += `🍟 Guarn.: ${prato.guarnicoes.join(', ')}\n`;
-                
-                let subtotal = valorPrato;
-                if (prato.acompanhamentos.includes('Não quero arroz')) {
-                    mensagem += `   + Não quero arroz: R$ ${config.valorSemArroz.toFixed(2)}\n`;
-                    subtotal += config.valorSemArroz;
-                }
-                
-                if (prato.bebidas.length) {
-                    prato.bebidas.forEach(b => {
-                        mensagem += `   - ${b.nome}: R$ ${b.valor.toFixed(2)}\n`;
-                        subtotal += b.valor;
-                    });
-                }
-                
-                if (prato.acrescimos.length) {
-                    prato.acrescimos.forEach(a => {
-                        mensagem += `   - ${a.nome}: R$ ${a.valor.toFixed(2)}\n`;
-                        subtotal += a.valor;
-                    });
-                }
-                
-                if (prato.observacao) {
-                    mensagem += `📝 Obs: ${prato.observacao}\n`;
-                }
-                
-                totalPratos += subtotal;
-            });
-
-            const taxa = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
-            mensagem += `\n💰 *TOTAL:* R$ ${(totalPratos + taxa).toFixed(2)}`;
-            
-            return mensagem;
+       // ===== GERAR MENSAGEM WHATSAPP COM SUBTOTAL =====
+function gerarMensagemWhatsApp() {
+    const nome = document.getElementById('nomeCliente').value;
+    let mensagem = `🍽️ *NOVO PEDIDO - ${document.getElementById('nomeRestaurante').textContent}* 🍽️\n\n`;
+    mensagem += `👤 *Cliente:* ${nome}\n`;
+    
+    if (document.getElementById('tipoEntrega').value === 'entrega') {
+        mensagem += `📍 *Endereço:* ${document.getElementById('rua').value}, ${document.getElementById('numero').value}`;
+        if (document.getElementById('complemento').value) {
+            mensagem += ` - ${document.getElementById('complemento').value}`;
         }
+        mensagem += `\n🏘️ *Bairro:* ${document.getElementById('bairro').value}`;
+        mensagem += `\n🏙️ *Cidade:* ${document.getElementById('cidade').value}`;
+    } else {
+        mensagem += `🏃 *Retirada no local*\n`;
+    }
+
+    mensagem += `\n💳 *Pagamento:* ${document.getElementById('pagamento').value.toUpperCase()}`;
+    
+    if (document.getElementById('pagamento').value === 'dinheiro' && document.getElementById('trocoValor').value) {
+        mensagem += `\n💰 *Troco:* R$ ${parseFloat(document.getElementById('trocoValor').value).toFixed(2)}`;
+    }
+
+    mensagem += `\n\n📋 *ITENS:*\n`;
+    
+    const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+    let totalPratos = 0;
+
+    pedidosAtuais.forEach((prato, idx) => {
+        let subtotalItem = valorPrato;
+        
+        mensagem += `\n━━━━━━ *REFEIÇÃO ${idx + 1}* ━━━━━━\n`;
+        mensagem += `🥩 Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
+        mensagem += `🍚 Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
+        
+        // Se tiver Sem Arroz
+        if (prato.acompanhamentos.includes('Sem Arroz')) {
+            mensagem += `   └─ + Sem Arroz: R$ ${config.valorSemArroz.toFixed(2)}\n`;
+            subtotalItem += config.valorSemArroz;
+        }
+        
+        if (prato.feijoes.length) mensagem += `🫘 Feijão: ${prato.feijoes.join(', ')}\n`;
+        if (prato.saladas.length) mensagem += `🥗 Salada: ${prato.saladas.join(', ')}\n`;
+        if (prato.guarnicoes.length) mensagem += `🍟 Guarn.: ${prato.guarnicoes.join(', ')}\n`;
+        
+        if (prato.bebidas.length) {
+            prato.bebidas.forEach(b => {
+                mensagem += `🥤 ${b.nome}: R$ ${b.valor.toFixed(2)}\n`;
+                subtotalItem += b.valor;
+            });
+        }
+        
+        if (prato.acrescimos.length) {
+            prato.acrescimos.forEach(a => {
+                mensagem += `➕ ${a.nome}: R$ ${a.valor.toFixed(2)}\n`;
+                subtotalItem += a.valor;
+            });
+        }
+        
+        if (prato.observacao) {
+            mensagem += `📝 Obs: ${prato.observacao}\n`;
+        }
+        
+        // 👉 ADICIONA O SUBTOTAL DA REFEIÇÃO
+        mensagem += `┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅\n`;
+        mensagem += `💵 *Subtotal Refeição ${idx + 1}: R$ ${subtotalItem.toFixed(2)}*\n`;
+        
+        totalPratos += subtotalItem;
+    });
+
+    const taxa = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
+    mensagem += `\n━━━━━━ *TOTAL DO PEDIDO* ━━━━━━\n`;
+    mensagem += `💰 *TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}*`;
+    
+    return mensagem;
+}
 
         // ===== ENVIAR WHATSAPP =====
         function enviarWhatsApp() {
