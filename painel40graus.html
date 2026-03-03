@@ -363,537 +363,406 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-        // ===== CONFIGURAÇÃO =====
-        const RESTAURANTE_ID = 'restaurante1';  // ← MUDA AQUI PARA CADA PAINEL
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDjJG3qD1OhPJ_N-mfzH-ChMvHAez6XsGc",
-            authDomain: "graus-38cce.firebaseapp.com",
-            databaseURL: "https://graus-38cce-default-rtdb.firebaseio.com",
-            projectId: "graus-38cce",
-            storageBucket: "graus-38cce.firebasestorage.app",
-            messagingSenderId: "167323638749",
-            appId: "1:167323638749:web:6675d3d1edec31096b7434"
-        };
+    // ===== CONFIGURAÇÃO =====
+    const RESTAURANTE_ID = 'restaurante1';
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyDjJG3qD1OhPJ_N-mfzH-ChMvHAez6XsGc",
+        authDomain: "graus-38cce.firebaseapp.com",
+        databaseURL: "https://graus-38cce-default-rtdb.firebaseio.com",
+        projectId: "graus-38cce",
+        storageBucket: "graus-38cce.firebasestorage.app",
+        messagingSenderId: "167323638749",
+        appId: "1:167323638749:web:6675d3d1edec31096b7434"
+    };
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const dbRef = database.ref('restaurantes/' + RESTAURANTE_ID);
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const dbRef = database.ref('restaurantes/' + RESTAURANTE_ID);
 
-        // ===== VARIÁVEIS GLOBAIS =====
-        let todosPedidos = [];
-        let filtroAtual = 'todos';
-        let dataHoje = new Date();
-        dataHoje.setHours(0, 0, 0, 0);
-        
-        // Cache para templates
-        const templateCache = new Map();
-        
-        // Set para IDs já notificados
-        const pedidosNotificados = new Set();
+    // ===== VARIÁVEIS GLOBAIS =====
+    let todosPedidos = [];
+    let filtroAtual = 'todos';
+    let dataHoje = new Date();
+    dataHoje.setHours(0, 0, 0, 0);
+    
+    const templateCache = new Map();
 
-        // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-            Notification.requestPermission();
-        }
+    // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
 
-        // ===== TOCAR NOTIFICAÇÃO =====
-        function tocarNotificacao() {
-            const audio = document.getElementById('notificacaoSonora');
-            audio.play().catch(e => console.log('Erro ao tocar som:', e));
-        }
+    // ===== TOCAR NOTIFICAÇÃO =====
+    function tocarNotificacao() {
+        const audio = document.getElementById('notificacaoSonora');
+        audio.play().catch(e => console.log('Erro ao tocar som:', e));
+    }
 
-        // ===== MOSTRAR NOTIFICAÇÃO =====
-        function mostrarNotificacao(titulo, corpo) {
-            if (Notification.permission === 'granted') {
-                new Notification(titulo, {
-                    body: corpo,
-                    icon: 'img/logo-restaurante1.png',
-                    requireInteraction: true,
-                    silent: false
-                });
-            }
-        }
-
-        // ===== VERIFICAR SE É HOJE =====
-        function ehHoje(timestamp) {
-            const data = new Date(timestamp);
-            data.setHours(0, 0, 0, 0);
-            return data.getTime() === dataHoje.getTime();
-        }
-
-        // ===== LISTENER EM TEMPO REAL (ÚNICA CONEXÃO) =====
-        function iniciarListenerRealtime() {
-            dbRef.child('pedidos').on('value', (snapshot) => {
-                const pedidos = snapshot.val();
-                
-                if (pedidos) {
-                    // Guardar IDs anteriores para detectar novos
-                    const idsAnteriores = new Set(todosPedidos.map(p => p.id));
-                    
-                    // Converter para array
-                    todosPedidos = Object.entries(pedidos).map(([id, data]) => ({
-                        id: id,
-                        ...data
-                    }));
-                    
-                    // Detectar novos pedidos de HOJE
-                    const novosPedidosHoje = todosPedidos.filter(p => 
-                        !idsAnteriores.has(p.id) && 
-                        p.status === 'novo' &&
-                        ehHoje(p.data)
-                    );
-                    
-                    if (novosPedidosHoje.length > 0) {
-                        tocarNotificacao();
-                        mostrarNotificacao(
-                            `🆕 ${novosPedidosHoje.length} NOVO(S) PEDIDO(S)!`,
-                            `${novosPedidosHoje.map(p => `#${p.numero || p.id.slice(-4)} - ${p.cliente?.nome}`).join('\n')}`
-                        );
-                    }
-                    
-                    // Atualizar interface
-                    atualizarEstatisticas();
-                    filtrarPedidos(filtroAtual);
-                    
-                    // Limpar cache de templates
-                    templateCache.clear();
-                } else {
-                    todosPedidos = [];
-                    document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum pedido encontrado</p>';
-                }
-            }, (error) => {
-                console.error('Erro no listener:', error);
-                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; color:#800020;">Erro ao carregar pedidos. Recarregue a página.</p>';
+    // ===== MOSTRAR NOTIFICAÇÃO =====
+    function mostrarNotificacao(titulo, corpo) {
+        if (Notification.permission === 'granted') {
+            new Notification(titulo, {
+                body: corpo,
+                icon: 'img/logo-restaurante1.png',
+                requireInteraction: true
             });
         }
+    }
 
-        // ===== ATUALIZAR ESTATÍSTICAS (APENAS HOJE) =====
-        function atualizarEstatisticas() {
-            const stats = {
-                novo: 0,
-                preparando: 0,
-                saiu: 0,
-                entregue: 0
-            };
-            
-            // Contagem rápida com for loop
-            for (let i = 0; i < todosPedidos.length; i++) {
-                const pedido = todosPedidos[i];
-                if (ehHoje(pedido.data) && stats.hasOwnProperty(pedido.status)) {
-                    stats[pedido.status]++;
-                }
-            }
+    // ===== VERIFICAR SE É HOJE =====
+    function ehHoje(timestamp) {
+        const data = new Date(timestamp);
+        data.setHours(0, 0, 0, 0);
+        return data.getTime() === dataHoje.getTime();
+    }
 
-            document.getElementById('totalNovos').textContent = stats.novo;
-            document.getElementById('totalPreparando').textContent = stats.preparando;
-            document.getElementById('totalSaiu').textContent = stats.saiu;
-            document.getElementById('totalEntregue').textContent = stats.entregue;
-        }
-
-        // ===== FILTRAR PEDIDOS (APENAS HOJE) =====
-        function filtrarPedidos(filtro) {
-            filtroAtual = filtro;
+    // ===== LISTENER PRINCIPAL (ÚNICO) =====
+    function iniciarListenerUnico() {
+        // Mostrar loading
+        document.getElementById('pedidosGrid').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando pedidos...</div>';
+        
+        // ÚNICO LISTENER para TUDO
+        dbRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            console.log('📦 Dados recebidos do Firebase:', data);
             
-            // Atualizar botões
-            document.querySelectorAll('.filtro-btn').forEach(btn => {
-                btn.classList.remove('ativo');
-            });
-            if (event) event.target.classList.add('ativo');
-
-            // Filtrar por data PRIMEIRO (mais rápido)
-            const pedidosHoje = [];
-            for (let i = 0; i < todosPedidos.length; i++) {
-                const pedido = todosPedidos[i];
-                if (ehHoje(pedido.data)) {
-                    pedidosHoje.push(pedido);
-                }
-            }
-            
-            // Depois por status
-            let resultado = pedidosHoje;
-            if (filtro !== 'todos') {
-                resultado = pedidosHoje.filter(p => p.status === filtro);
-            }
-            
-            // Ordenar por data (mais recentes primeiro)
-            resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
-            
-            renderizarPedidos(resultado);
-        }
-
-        // ===== RENDERIZAR PEDIDOS (COM CACHE) =====
-        function renderizarPedidos(pedidos) {
-            const grid = document.getElementById('pedidosGrid');
-            
-            if (pedidos.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido hoje</p>';
+            if (!data) {
+                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum dado encontrado</p>';
                 return;
             }
-
-            // Usar DocumentFragment para melhor performance
-            const fragment = document.createDocumentFragment();
-            const template = document.createElement('template');
-
-            for (let i = 0; i < pedidos.length; i++) {
-                const pedido = pedidos[i];
-                const cacheKey = `${pedido.id}_${pedido.status}`;
+            
+            // 1️⃣ NOME DO RESTAURANTE
+            if (data.info?.nome) {
+                document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + data.info.nome;
+            }
+            
+            // 2️⃣ PEDIDOS
+            if (data.pedidos) {
+                // Converter objeto em array
+                todosPedidos = Object.entries(data.pedidos).map(([id, pedido]) => ({
+                    id: id,
+                    ...pedido
+                }));
                 
-                // Verificar cache
-                if (templateCache.has(cacheKey)) {
-                    fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
-                    continue;
-                }
+                console.log(`📋 ${todosPedidos.length} pedidos carregados`);
+                
+                // Atualizar tudo
+                atualizarEstatisticas();
+                filtrarPedidos(filtroAtual);
+                templateCache.clear();
+            } else {
+                todosPedidos = [];
+                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum pedido encontrado</p>';
+            }
+            
+        }, (error) => {
+            console.error('❌ Erro no Firebase:', error);
+            document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; color:#800020;">Erro ao carregar dados. Verifique o Firebase.</p>';
+        });
+    }
 
-                const statusClass = pedido.status || 'novo';
-                const statusText = {
-                    'novo': '🟢 NOVO',
-                    'preparando': '🟡 PREPARANDO',
-                    'saiu': '🔵 SAIU',
-                    'entregue': '✅ ENTREGUE'
-                }[statusClass] || '🟢 NOVO';
+    // ===== ATUALIZAR ESTATÍSTICAS =====
+    function atualizarEstatisticas() {
+        const stats = { novo: 0, preparando: 0, saiu: 0, entregue: 0 };
+        
+        for (let i = 0; i < todosPedidos.length; i++) {
+            const pedido = todosPedidos[i];
+            if (ehHoje(pedido.data) && stats.hasOwnProperty(pedido.status)) {
+                stats[pedido.status]++;
+            }
+        }
 
-                // Formatar data de forma amigável
-                const dataPedido = new Date(pedido.data);
-                const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('totalNovos').textContent = stats.novo;
+        document.getElementById('totalPreparando').textContent = stats.preparando;
+        document.getElementById('totalSaiu').textContent = stats.saiu;
+        document.getElementById('totalEntregue').textContent = stats.entregue;
+    }
 
-                const html = `
-                    <div class="pedido-card ${statusClass}">
-                        <div class="pedido-header">
-                            <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
-                            <span class="pedido-status status-${statusClass}">${statusText}</span>
-                        </div>
-                        
-                        <div class="pedido-cliente">
-                            <i class="fas fa-user" style="margin-right:5px;"></i> ${pedido.cliente?.nome || 'Cliente'}
-                        </div>
-                        
-                        <div class="pedido-info">
-                            <div><i class="far fa-clock"></i> ${horaFormatada}</div>
-                            <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
-                            <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
-                            <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
-                        </div>
-                        
-                        <div class="pedido-total">
-                            R$ ${(pedido.total || 0).toFixed(2)}
-                        </div>
+    // ===== FILTRAR PEDIDOS =====
+    function filtrarPedidos(filtro) {
+        filtroAtual = filtro;
+        
+        document.querySelectorAll('.filtro-btn').forEach(btn => {
+            btn.classList.remove('ativo');
+        });
+        if (event) event.target.classList.add('ativo');
 
-                        <div class="pedido-acoes">
-                            ${statusClass !== 'entregue' ? `
-                                ${statusClass === 'novo' ? `
-                                    <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
-                                        <i class="fas fa-utensils"></i> PREPARAR
-                                    </button>
-                                ` : ''}
-                                
-                                ${statusClass === 'preparando' ? `
-                                    <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
-                                        <i class="fas fa-motorcycle"></i> SAIU
-                                    </button>
-                                ` : ''}
-                                
-                                ${statusClass === 'saiu' ? `
-                                    <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
-                                        <i class="fas fa-check"></i> ENTREGUE
-                                    </button>
-                                ` : ''}
+        // Filtrar por hoje
+        const pedidosHoje = todosPedidos.filter(p => ehHoje(p.data));
+        
+        // Filtrar por status
+        let resultado = pedidosHoje;
+        if (filtro !== 'todos') {
+            resultado = pedidosHoje.filter(p => p.status === filtro);
+        }
+        
+        // Ordenar (mais recentes primeiro)
+        resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
+        
+        renderizarPedidos(resultado);
+    }
+
+    // ===== RENDERIZAR PEDIDOS =====
+    function renderizarPedidos(pedidos) {
+        const grid = document.getElementById('pedidosGrid');
+        
+        if (pedidos.length === 0) {
+            grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido hoje</p>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        const template = document.createElement('template');
+
+        for (let i = 0; i < pedidos.length; i++) {
+            const pedido = pedidos[i];
+            const cacheKey = `${pedido.id}_${pedido.status}`;
+            
+            if (templateCache.has(cacheKey)) {
+                fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
+                continue;
+            }
+
+            const statusClass = pedido.status || 'novo';
+            const statusText = {
+                'novo': '🟢 NOVO',
+                'preparando': '🟡 PREPARANDO',
+                'saiu': '🔵 SAIU',
+                'entregue': '✅ ENTREGUE'
+            }[statusClass] || '🟢 NOVO';
+
+            const dataPedido = new Date(pedido.data);
+            const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            const html = `
+                <div class="pedido-card ${statusClass}">
+                    <div class="pedido-header">
+                        <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
+                        <span class="pedido-status status-${statusClass}">${statusText}</span>
+                    </div>
+                    
+                    <div class="pedido-cliente">
+                        <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
+                    </div>
+                    
+                    <div class="pedido-info">
+                        <div><i class="far fa-clock"></i> ${horaFormatada}</div>
+                        <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
+                        <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
+                        <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
+                    </div>
+                    
+                    <div class="pedido-total">
+                        R$ ${(pedido.total || 0).toFixed(2)}
+                    </div>
+
+                    <div class="pedido-acoes">
+                        ${statusClass !== 'entregue' ? `
+                            ${statusClass === 'novo' ? `
+                                <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
+                                    <i class="fas fa-utensils"></i> PREPARAR
+                                </button>
                             ` : ''}
                             
-                            <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
-                                <i class="fab fa-whatsapp"></i> WhatsApp
-                            </button>
+                            ${statusClass === 'preparando' ? `
+                                <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
+                                    <i class="fas fa-motorcycle"></i> SAIU
+                                </button>
+                            ` : ''}
                             
-                            <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
-                                <i class="fas fa-print"></i> IMPRIMIR
-                            </button>
-                            
-                            <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
-                                <i class="fas fa-eye"></i> DETALHES
-                            </button>
-                        </div>
+                            ${statusClass === 'saiu' ? `
+                                <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
+                                    <i class="fas fa-check"></i> ENTREGUE
+                                </button>
+                            ` : ''}
+                        ` : ''}
+                        
+                        <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                        
+                        <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
+                            <i class="fas fa-print"></i> IMPRIMIR
+                        </button>
+                        
+                        <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
+                            <i class="fas fa-eye"></i> DETALHES
+                        </button>
                     </div>
-                `;
+                </div>
+            `;
 
-                template.innerHTML = html.trim();
-                const card = template.content.firstChild;
-                
-                // Salvar no cache
-                templateCache.set(cacheKey, card.cloneNode(true));
-                fragment.appendChild(card);
-            }
-
-            // Atualizar DOM de uma vez
-            grid.innerHTML = '';
-            grid.appendChild(fragment);
-        }
-
-        // ===== ATUALIZAR STATUS =====
-        function atualizarStatus(pedidoId, novoStatus) {
-            dbRef.child('pedidos/' + pedidoId + '/status').set(novoStatus)
-                .then(() => {
-                    console.log('Status atualizado com sucesso');
-                })
-                .catch(error => {
-                    console.error('Erro ao atualizar status:', error);
-                    alert('Erro ao atualizar status. Tente novamente.');
-                });
-        }
-
-        // ===== ENVIAR WHATSAPP OFICIAL =====
-        function enviarWhatsApp(pedidoId) {
-            const pedido = todosPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
-
-            // Formatar número (remover caracteres não numéricos)
-            let telefone = pedido.cliente?.telefone || '';
-            telefone = telefone.replace(/\D/g, '');
+            template.innerHTML = html.trim();
+            const card = template.content.firstChild;
             
-            if (!telefone) {
-                telefone = prompt('Digite o telefone do cliente (com DDD):', '55');
-                if (!telefone) return;
-            }
-
-            // Garantir código do país
-            if (!telefone.startsWith('55')) {
-                telefone = '55' + telefone;
-            }
-
-            // Montar mensagem baseada no status
-            const statusMsg = {
-                'novo': 'foi confirmado',
-                'preparando': 'está sendo preparado',
-                'saiu': 'saiu para entrega',
-                'entregue': 'foi entregue'
-            }[pedido.status] || 'está em processamento';
-
-            const mensagem = `🍽️ *40 GRAUS*\n\nOlá *${pedido.cliente?.nome}*, tudo bem?\n\nSeu pedido *#${pedido.numero || pedido.id.slice(-4)}* ${statusMsg}.\n\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}\n\nAgradecemos pela preferência! 🙏`;
-
-            // Abrir WhatsApp Web
-            window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+            templateCache.set(cacheKey, card.cloneNode(true));
+            fragment.appendChild(card);
         }
 
-        // ===== IMPRIMIR PEDIDO =====
-        function imprimirPedido(pedidoId) {
-            const pedido = todosPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
+        grid.innerHTML = '';
+        grid.appendChild(fragment);
+    }
 
-            const janelaImpressao = window.open('', '_blank');
-            
-            janelaImpressao.document.write(`
-                <html>
-                <head>
-                    <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
-                    <style>
-                        body { 
-                            font-family: 'Courier New', monospace; 
-                            font-size: 12px; 
-                            padding: 20px; 
-                            max-width: 300px;
-                            margin: 0 auto;
-                        }
-                        .header { 
-                            text-align: center; 
-                            margin-bottom: 20px; 
-                            border-bottom: 2px solid #800020;
-                            padding-bottom: 10px;
-                        }
-                        .header h1 {
-                            color: #800020;
-                            font-size: 18px;
-                            margin: 0;
-                        }
-                        .linha { 
-                            border-top: 1px dashed #000; 
-                            margin: 10px 0; 
-                        }
-                        table { 
-                            width: 100%; 
-                            border-collapse: collapse; 
-                        }
-                        td { 
-                            padding: 3px; 
-                            vertical-align: top;
-                        }
-                        .total {
-                            font-size: 14px;
-                            font-weight: bold;
-                            border-top: 2px solid #800020;
-                            padding-top: 10px;
-                            margin-top: 10px;
-                            text-align: right;
-                        }
-                        .footer {
-                            text-align: center;
-                            margin-top: 20px;
-                            font-style: italic;
-                            border-top: 1px dashed #000;
-                            padding-top: 10px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>40 GRAUS</h1>
-                        <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
-                        <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
-                    </div>
-                    
-                    <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
-                    ${pedido.cliente?.endereco ? `
-                        <p><strong>Endereço:</strong> ${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</p>
-                        <p><strong>Bairro:</strong> ${pedido.cliente.endereco.bairro || ''}</p>
-                    ` : ''}
-                    <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'} ${pedido.troco ? '(Troco R$ ' + pedido.troco + ')' : ''}</p>
-                    
-                    <div class="linha"></div>
-                    
-                    <h3>ITENS:</h3>
-            `);
-
-            pedido.itens?.forEach((item, idx) => {
-                janelaImpressao.document.write(`
-                    <p><strong>Refeição ${idx + 1}</strong><br>
-                    🥩 Carne: ${item.carnes?.join(', ') || 'Nenhuma'}<br>
-                    🍚 Acompanhamentos: ${item.acompanhamentos?.join(', ') || 'Nenhum'}<br>
-                `);
-                
-                if (item.feijoes?.length) janelaImpressao.document.write(`🫘 Feijão: ${item.feijoes.join(', ')}<br>`);
-                if (item.saladas?.length) janelaImpressao.document.write(`🥗 Salada: ${item.saladas.join(', ')}<br>`);
-                if (item.guarnicoes?.length) janelaImpressao.document.write(`🍟 Guarnição: ${item.guarnicoes.join(', ')}<br>`);
-                if (item.bebidas?.length) {
-                    item.bebidas.forEach(b => janelaImpressao.document.write(`🥤 ${b.nome}: R$ ${b.valor?.toFixed(2)}<br>`));
-                }
-                if (item.acrescimos?.length) {
-                    item.acrescimos.forEach(a => janelaImpressao.document.write(`➕ ${a.nome}: R$ ${a.valor?.toFixed(2)}<br>`));
-                }
-                if (item.observacao) janelaImpressao.document.write(`📝 Obs: ${item.observacao}<br>`);
-                
-                janelaImpressao.document.write(`</p>`);
+    // ===== ATUALIZAR STATUS =====
+    function atualizarStatus(pedidoId, novoStatus) {
+        dbRef.child('pedidos/' + pedidoId + '/status').set(novoStatus)
+            .then(() => console.log('Status atualizado'))
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao atualizar status');
             });
+    }
 
+    // ===== ENVIAR WHATSAPP =====
+    function enviarWhatsApp(pedidoId) {
+        const pedido = todosPedidos.find(p => p.id === pedidoId);
+        if (!pedido) return;
+
+        let telefone = pedido.cliente?.telefone || '';
+        telefone = telefone.replace(/\D/g, '');
+        
+        if (!telefone) {
+            telefone = prompt('Digite o telefone do cliente (com DDD):', '55');
+            if (!telefone) return;
+        }
+
+        if (!telefone.startsWith('55')) {
+            telefone = '55' + telefone;
+        }
+
+        const statusMsg = {
+            'novo': 'foi confirmado',
+            'preparando': 'está sendo preparado',
+            'saiu': 'saiu para entrega',
+            'entregue': 'foi entregue'
+        }[pedido.status] || 'está em processamento';
+
+        const mensagem = `🍽️ *40 GRAUS*\n\nOlá *${pedido.cliente?.nome}*, tudo bem?\n\nSeu pedido *#${pedido.numero || pedido.id.slice(-4)}* ${statusMsg}.\n\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}\n\nAgradecemos pela preferência! 🙏`;
+
+        window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+    }
+
+    // ===== IMPRIMIR PEDIDO =====
+    function imprimirPedido(pedidoId) {
+        const pedido = todosPedidos.find(p => p.id === pedidoId);
+        if (!pedido) return;
+
+        const janelaImpressao = window.open('', '_blank');
+        
+        janelaImpressao.document.write(`
+            <html>
+            <head>
+                <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
+                <style>
+                    body { font-family: 'Courier New', monospace; font-size: 12px; padding: 20px; max-width: 300px; margin: 0 auto; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #800020; padding-bottom: 10px; }
+                    .header h1 { color: #800020; font-size: 18px; margin: 0; }
+                    .linha { border-top: 1px dashed #000; margin: 10px 0; }
+                    .total { font-size: 14px; font-weight: bold; border-top: 2px solid #800020; padding-top: 10px; margin-top: 10px; text-align: right; }
+                    .footer { text-align: center; margin-top: 20px; font-style: italic; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>40 GRAUS</h1>
+                    <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
+                    <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
+                </div>
+                
+                <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
+                <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
+                
+                <div class="linha"></div>
+                <h3>ITENS:</h3>
+        `);
+
+        pedido.itens?.forEach((item, idx) => {
             janelaImpressao.document.write(`
-                    <div class="linha"></div>
-                    <p class="total"><strong>TOTAL: R$ ${pedido.total?.toFixed(2) || '0.00'}</strong></p>
-                    
-                    <div class="footer">
-                        <p>Obrigado pela preferência!</p>
-                        <p>40 GRAUS - O sabor da tradição</p>
-                    </div>
-                    
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            setTimeout(() => window.close(), 1000);
-                        };
-                    <\/script>
-                </body>
-                </html>
+                <p><strong>Refeição ${idx + 1}</strong><br>
+                🥩 Carne: ${item.carnes?.join(', ') || 'Nenhuma'}<br>
+                🍚 Acomp.: ${item.acompanhamentos?.join(', ') || 'Nenhum'}<br>
             `);
             
-            janelaImpressao.document.close();
-        }
-
-        // ===== VER DETALHES =====
-        function verDetalhes(pedidoId) {
-            const pedido = todosPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
-
-            let html = `
-                <table>
-                    <tr><td>Número:</td><td><strong>#${pedido.numero || pedido.id.slice(-4)}</strong></td></tr>
-                    <tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>
-                    <tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>
-            `;
-
-            if (pedido.cliente?.endereco) {
-                html += `
-                    <tr><td>Endereço:</td><td>${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}${pedido.cliente.endereco.complemento ? ' - ' + pedido.cliente.endereco.complemento : ''}<br>${pedido.cliente.endereco.bairro || ''} - ${pedido.cliente.endereco.cidade || ''}</td></tr>
-                `;
+            if (item.feijoes?.length) janelaImpressao.document.write(`🫘 Feijão: ${item.feijoes.join(', ')}<br>`);
+            if (item.saladas?.length) janelaImpressao.document.write(`🥗 Salada: ${item.saladas.join(', ')}<br>`);
+            if (item.guarnicoes?.length) janelaImpressao.document.write(`🍟 Guarn.: ${item.guarnicoes.join(', ')}<br>`);
+            if (item.bebidas?.length) {
+                item.bebidas.forEach(b => janelaImpressao.document.write(`🥤 ${b.nome}: R$ ${b.valor?.toFixed(2)}<br>`));
             }
+            if (item.observacao) janelaImpressao.document.write(`📝 Obs: ${item.observacao}<br>`);
+            
+            janelaImpressao.document.write(`</p>`);
+        });
 
-            html += `
-                    <tr><td>Pagamento:</td><td>${pedido.pagamento?.toUpperCase() || 'N/A'}${pedido.troco ? ' (Troco p/ R$ ' + pedido.troco + ')' : ''}</td></tr>
-                    <tr><td>Entrega:</td><td>${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</td></tr>
-                </table>
-                
-                <h3 style="color:#800020; margin:20px 0 10px;">Itens:</h3>
-                <table>
-            `;
+        janelaImpressao.document.write(`
+                <div class="linha"></div>
+                <p class="total">TOTAL: R$ ${pedido.total?.toFixed(2) || '0.00'}</p>
+                <div class="footer">Obrigado pela preferência!</div>
+                <script>window.onload = function() { window.print(); setTimeout(() => window.close(), 1000); };<\/script>
+            </body>
+            </html>
+        `);
+        
+        janelaImpressao.document.close();
+    }
 
-            pedido.itens?.forEach((item, idx) => {
-                html += `
-                    <tr><td colspan="2" style="color:#800020; padding-top:10px;"><strong>Refeição ${idx + 1}</strong></td></tr>
-                    <tr><td>Carnes:</td><td>${item.carnes?.join(', ') || 'Nenhuma'}</td></tr>
-                    <tr><td>Acompanhamentos:</td><td>${item.acompanhamentos?.join(', ') || 'Nenhum'}</td></tr>
-                `;
-                
-                if (item.feijoes?.length) html += `<tr><td>Feijões:</td><td>${item.feijoes.join(', ')}</td></tr>`;
-                if (item.saladas?.length) html += `<tr><td>Saladas:</td><td>${item.saladas.join(', ')}</td></tr>`;
-                if (item.guarnicoes?.length) html += `<tr><td>Guarnições:</td><td>${item.guarnicoes.join(', ')}</td></tr>`;
-                
-                if (item.bebidas?.length) {
-                    item.bebidas.forEach(b => html += `<tr><td>Bebida:</td><td>${b.nome} - R$ ${b.valor?.toFixed(2)}</td></tr>`);
-                }
-                
-                if (item.acrescimos?.length) {
-                    item.acrescimos.forEach(a => html += `<tr><td>Acréscimo:</td><td>${a.nome} - R$ ${a.valor?.toFixed(2)}</td></tr>`);
-                }
-                
-                if (item.observacao) {
-                    html += `<tr><td>Observação:</td><td>${item.observacao}</td></tr>`;
-                }
-            });
+    // ===== VER DETALHES =====
+    function verDetalhes(pedidoId) {
+        const pedido = todosPedidos.find(p => p.id === pedidoId);
+        if (!pedido) return;
 
-            html += `
-                <tr><td colspan="2" style="border-top:2px solid #800020; padding-top:10px;"><strong>Total: R$ ${pedido.total?.toFixed(2) || '0.00'}</strong></td></tr>
-                </table>
-            `;
-
-            document.getElementById('detalhesConteudo').innerHTML = html;
-            document.getElementById('modalDetalhes').style.display = 'flex';
+        let html = '<table>';
+        html += `<tr><td>Número:</td><td><strong>#${pedido.numero || pedido.id.slice(-4)}</strong></td></tr>`;
+        html += `<tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>`;
+        html += `<tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>`;
+        
+        if (pedido.cliente?.endereco) {
+            html += `<tr><td>Endereço:</td><td>${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</td></tr>`;
         }
+        
+        html += `<tr><td>Pagamento:</td><td>${pedido.pagamento?.toUpperCase() || 'N/A'}</td></tr>`;
+        html += `<tr><td>Entrega:</td><td>${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</td></tr>`;
+        html += '</table><h3 style="color:#800020;">Itens:</h3><table>';
+        
+        pedido.itens?.forEach((item, idx) => {
+            html += `<tr><td colspan="2"><strong>Refeição ${idx + 1}</strong></td></tr>`;
+            html += `<tr><td>Carnes:</td><td>${item.carnes?.join(', ') || 'Nenhuma'}</td></tr>`;
+            html += `<tr><td>Acompanhamentos:</td><td>${item.acompanhamentos?.join(', ') || 'Nenhum'}</td></tr>`;
+            if (item.feijoes?.length) html += `<tr><td>Feijões:</td><td>${item.feijoes.join(', ')}</td></tr>`;
+            if (item.saladas?.length) html += `<tr><td>Saladas:</td><td>${item.saladas.join(', ')}</td></tr>`;
+            if (item.guarnicoes?.length) html += `<tr><td>Guarnições:</td><td>${item.guarnicoes.join(', ')}</td></tr>`;
+            if (item.observacao) html += `<tr><td>Obs:</td><td>${item.observacao}</td></tr>`;
+        });
+        
+        html += `<tr><td colspan="2" style="border-top:2px solid #800020;"><strong>Total: R$ ${pedido.total?.toFixed(2)}</strong></td></tr></table>`;
 
-        // ===== FECHAR MODAL =====
-        function fecharModal() {
-            document.getElementById('modalDetalhes').style.display = 'none';
-        }
+        document.getElementById('detalhesConteudo').innerHTML = html;
+        document.getElementById('modalDetalhes').style.display = 'flex';
+    }
 
-        // ===== INICIAR =====
-        window.onload = function() {
-            // Mostrar data atual
-            document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Carregar nome do restaurante
-            dbRef.child('info/nome').once('value', (snapshot) => {
-                if (snapshot.val()) {
-                    document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + snapshot.val();
-                }
-            });
+    // ===== FECHAR MODAL =====
+    function fecharModal() {
+        document.getElementById('modalDetalhes').style.display = 'none';
+    }
 
-            // Iniciar listener em tempo real (ÚNICA CONEXÃO)
-            iniciarListenerRealtime();
-            
-            // Fechar modal com ESC
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    fecharModal();
-                }
-            });
-            
-            // Fechar modal clicando fora
-            document.getElementById('modalDetalhes').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('modalDetalhes')) {
-                    fecharModal();
-                }
-            });
-        };
-    </script>
+    // ===== INICIAR =====
+    window.onload = function() {
+        document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        
+        // INICIAR LISTENER ÚNICO
+        iniciarListenerUnico();
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') fecharModal();
+        });
+        
+        document.getElementById('modalDetalhes').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modalDetalhes')) fecharModal();
+        });
+    };
+</script>
 </body>
 </html>
