@@ -362,7 +362,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-    <script>
+   <script>
     // ===== CONFIGURAÇÃO =====
     const RESTAURANTE_ID = 'restaurante1';
     
@@ -404,7 +404,7 @@
         if (Notification.permission === 'granted') {
             new Notification(titulo, {
                 body: corpo,
-                icon: 'img/logo-restaurante1.png',
+                icon: 'img/logorestaurante1.png',
                 requireInteraction: true
             });
         }
@@ -643,75 +643,269 @@
         window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
     }
 
-    // ===== IMPRIMIR PEDIDO =====
-    function imprimirPedido(pedidoId) {
-        const pedido = todosPedidos.find(p => p.id === pedidoId);
-        if (!pedido) return;
+   // ===== IMPRIMIR PEDIDO (PAINEL ADMIN) =====
+function imprimirPedido(pedidoId) {
+    const pedido = todosPedidos.find(p => p.id === pedidoId);
+    if (!pedido) return;
 
-        const janelaImpressao = window.open('', '_blank');
-        
-        janelaImpressao.document.write(`
-            <html>
-            <head>
-                <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
-                <style>
-                    body { font-family: 'Courier New', monospace; font-size: 12px; padding: 20px; max-width: 300px; margin: 0 auto; }
-                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #800020; padding-bottom: 10px; }
-                    .header h1 { color: #800020; font-size: 18px; margin: 0; }
-                    .linha { border-top: 1px dashed #000; margin: 10px 0; }
-                    .total { font-size: 14px; font-weight: bold; border-top: 2px solid #800020; padding-top: 10px; margin-top: 10px; text-align: right; }
-                    .footer { text-align: center; margin-top: 20px; font-style: italic; }
-                </style>
-            </head>
-            <body>
+    const valorPrato = parseFloat(document.getElementById('valorPrato')?.value || 25.90);
+    
+    const janelaImpressao = window.open('', '_blank');
+    
+    janelaImpressao.document.write(`
+        <html>
+        <head>
+            <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { 
+                    background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+                    color: #fff;
+                    font-family: 'Poppins', sans-serif;
+                    padding: 20px;
+                }
+                .pedido-card {
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid #800020;
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                }
+                .header {
+                    border-bottom: 2px solid #800020;
+                    padding-bottom: 10px;
+                    margin-bottom: 20px;
+                }
+                .header h1 {
+                    color: #800020;
+                    font-size: 1.5rem;
+                }
+                .info-cliente {
+                    background: rgba(128,0,32,0.1);
+                    padding: 15px;
+                    border-radius: 10px;
+                    margin-bottom: 20px;
+                }
+                .info-cliente p {
+                    margin: 5px 0;
+                }
+                .refeicao {
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(128,0,32,0.3);
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin: 15px 0;
+                }
+                .refeicao h3 {
+                    color: #800020;
+                    margin-bottom: 10px;
+                    border-bottom: 1px solid rgba(128,0,32,0.3);
+                    padding-bottom: 5px;
+                }
+                .item-linha {
+                    margin: 5px 0;
+                    display: flex;
+                    justify-content: space-between;
+                }
+                .subtotal {
+                    color: #800020;
+                    font-weight: bold;
+                    text-align: right;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    border-top: 2px solid rgba(128,0,32,0.3);
+                    font-size: 1.2rem;
+                }
+                .total-geral {
+                    background: #800020;
+                    color: white;
+                    padding: 15px;
+                    border-radius: 10px;
+                    text-align: right;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    margin-top: 20px;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 30px;
+                    color: #888;
+                    font-style: italic;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="pedido-card">
                 <div class="header">
-                    <h1>40 GRAUS</h1>
-                    <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
+                    <h1>40 GRAUS - PEDIDO #${pedido.numero || pedido.id.slice(-4)}</h1>
                     <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
                 </div>
                 
-                <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
-                <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
-                
-                <div class="linha"></div>
-                <h3>ITENS:</h3>
-        `);
+                <div class="info-cliente">
+                    <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
+                    ${pedido.cliente?.endereco ? `
+                        <p><strong>Endereço:</strong> ${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</p>
+                        <p><strong>Bairro:</strong> ${pedido.cliente.endereco.bairro || ''}</p>
+                    ` : ''}
+                    <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
+                    <p><strong>Entrega:</strong> ${pedido.tipoEntrega === 'entrega' ? '🛵 Entrega' : '🏃 Retirada'}</p>
+                </div>
+    `);
 
-        pedido.itens?.forEach((item, idx) => {
+    let totalGeral = 0;
+
+    pedido.itens?.forEach((item, idx) => {
+        let subtotalItem = valorPrato;
+        
+        janelaImpressao.document.write(`
+            <div class="refeicao">
+                <h3>🍽️ REFEIÇÃO ${idx + 1}</h3>
+        `);
+        
+        // Carnes
+        if (item.carnes?.length) {
             janelaImpressao.document.write(`
-                <p><strong>Refeição ${idx + 1}</strong><br>
-                🥩 Carne: ${item.carnes?.join(', ') || 'Nenhuma'}<br>
-                🍚 Acomp.: ${item.acompanhamentos?.join(', ') || 'Nenhum'}<br>
+                <div class="item-linha">
+                    <span>🥩 Carne:</span>
+                    <span>${item.carnes.join(', ')}</span>
+                </div>
+            `);
+        }
+        
+        // Acompanhamentos
+        if (item.acompanhamentos?.length) {
+            janelaImpressao.document.write(`
+                <div class="item-linha">
+                    <span>🍚 Acompanhamentos:</span>
+                    <span>${item.acompanhamentos.join(', ')}</span>
+                </div>
             `);
             
-            if (item.feijoes?.length) janelaImpressao.document.write(`🫘 Feijão: ${item.feijoes.join(', ')}<br>`);
-            if (item.saladas?.length) janelaImpressao.document.write(`🥗 Salada: ${item.saladas.join(', ')}<br>`);
-            if (item.guarnicoes?.length) janelaImpressao.document.write(`🍟 Guarn.: ${item.guarnicoes.join(', ')}<br>`);
-            if (item.bebidas?.length) {
-                item.bebidas.forEach(b => janelaImpressao.document.write(`🥤 ${b.nome}: R$ ${b.valor?.toFixed(2)}<br>`));
+            // Sem Arroz
+            if (item.acompanhamentos.includes('Sem Arroz')) {
+                janelaImpressao.document.write(`
+                    <div class="item-linha" style="color: #FF9800; margin-left: 20px;">
+                        <span>➕ Sem Arroz:</span>
+                        <span>R$ ${config.valorSemArroz.toFixed(2)}</span>
+                    </div>
+                `);
+                subtotalItem += config.valorSemArroz;
             }
-            if (item.observacao) janelaImpressao.document.write(`📝 Obs: ${item.observacao}<br>`);
-            
-           // 👉 **AQUI ESTÁ O QUE FALTAVA: SUBTOTAL DA REFEIÇÃO**
-        janelaImpressao.document.write(`<div class="subtotal">Subtotal: R$ ${subtotalItem.toFixed(2)}</div>`);
+        }
         
-        janelaImpressao.document.write(`</div>`);
+        // Feijões
+        if (item.feijoes?.length) {
+            janelaImpressao.document.write(`
+                <div class="item-linha">
+                    <span>🫘 Feijão:</span>
+                    <span>${item.feijoes.join(', ')}</span>
+                </div>
+            `);
+        }
         
-        totalGeral += subtotalItem;
-    
-        });
-
+        // Saladas
+        if (item.saladas?.length) {
+            janelaImpressao.document.write(`
+                <div class="item-linha">
+                    <span>🥗 Salada:</span>
+                    <span>${item.saladas.join(', ')}</span>
+                </div>
+            `);
+        }
+        
+        // Guarnições
+        if (item.guarnicoes?.length) {
+            janelaImpressao.document.write(`
+                <div class="item-linha">
+                    <span>🍟 Guarnição:</span>
+                    <span>${item.guarnicoes.join(', ')}</span>
+                </div>
+            `);
+        }
+        
+        // Bebidas
+        if (item.bebidas?.length) {
+            item.bebidas.forEach(b => {
+                janelaImpressao.document.write(`
+                    <div class="item-linha">
+                        <span>🥤 ${b.nome}:</span>
+                        <span>R$ ${b.valor?.toFixed(2)}</span>
+                    </div>
+                `);
+                subtotalItem += b.valor || 0;
+            });
+        }
+        
+        // Acréscimos
+        if (item.acrescimos?.length) {
+            item.acrescimos.forEach(a => {
+                janelaImpressao.document.write(`
+                    <div class="item-linha">
+                        <span>➕ ${a.nome}:</span>
+                        <span>R$ ${a.valor?.toFixed(2)}</span>
+                    </div>
+                `);
+                subtotalItem += a.valor || 0;
+            });
+        }
+        
+        // Observação
+        if (item.observacao) {
+            janelaImpressao.document.write(`
+                <div class="item-linha" style="color: #888; font-style: italic;">
+                    <span>📝 Obs:</span>
+                    <span>${item.observacao}</span>
+                </div>
+            `);
+        }
+        
+        // 👉 SUBTOTAL DA REFEIÇÃO
         janelaImpressao.document.write(`
-                <div class="linha"></div>
-                <p class="total">TOTAL: R$ ${pedido.total?.toFixed(2) || '0.00'}</p>
-                <div class="footer">Obrigado pela preferência!</div>
-                <script>window.onload = function() { window.print(); setTimeout(() => window.close(), 1000); };<\/script>
-            </body>
-            </html>
+                <div class="subtotal">
+                    SUBTOTAL: R$ ${subtotalItem.toFixed(2)}
+                </div>
+            </div>
         `);
         
-        janelaImpressao.document.close();
+        totalGeral += subtotalItem;
+    });
+
+    // Taxa de entrega
+    if (pedido.tipoEntrega === 'entrega') {
+        const taxaEntrega = 7.00;
+        totalGeral += taxaEntrega;
+        janelaImpressao.document.write(`
+            <div class="refeicao" style="background: rgba(37, 211, 102, 0.1);">
+                <div class="item-linha">
+                    <span>🛵 Taxa de entrega:</span>
+                    <span>R$ ${taxaEntrega.toFixed(2)}</span>
+                </div>
+            </div>
+        `);
     }
+
+    // TOTAL GERAL
+    janelaImpressao.document.write(`
+            <div class="total-geral">
+                TOTAL GERAL: R$ ${totalGeral.toFixed(2)}
+            </div>
+            
+            <div class="footer">
+                Obrigado pela preferência! 🍽️
+            </div>
+            
+            <script>
+                window.onload = function() { 
+                    window.print(); 
+                    setTimeout(() => window.close(), 1000); 
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+    
+    janelaImpressao.document.close();
+}
 
     // ===== VER DETALHES =====
     function verDetalhes(pedidoId) {
