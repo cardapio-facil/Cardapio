@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Painel - Restaurante 40 graus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #800020;
+            font-size: 2rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #800020;
+            border-radius: 12px;
+            padding: 15px 25px;
+            text-align: center;
+        }
+
+        .status-box.novos { border-color: #4CAF50; }
+        .status-box.preparando { border-color: #FFC107; }
+        .status-box.saiu { border-color: #2196F3; }
+        .status-box.entregue { border-color: #9C27B0; }
+
+        .status-box .numero {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #800020;
+        }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #800020;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filtro-btn.ativo {
+            background: #800020;
+            color: #fff;
+        }
+
+        .filtro-btn:hover {
+            background: #800020;
+            transform: translateY(-2px);
+        }
+
+        .pedidos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .pedido-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #800020;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .pedido-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(128,0,32,0.3);
+        }
+
+        .pedido-card.novo { border-left: 5px solid #4CAF50; }
+        .pedido-card.preparando { border-left: 5px solid #FFC107; }
+        .pedido-card.saiu { border-left: 5px solid #2196F3; }
+        .pedido-card.entregue { border-left: 5px solid #9C27B0; opacity: 0.8; }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(128,0,32,0.3);
+        }
+
+        .pedido-numero {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #800020;
+        }
+
+        .pedido-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-novo { background: #4CAF50; color: #fff; }
+        .status-preparando { background: #FFC107; color: #000; }
+        .status-saiu { background: #2196F3; color: #fff; }
+        .status-entregue { background: #9C27B0; color: #fff; }
+
+        .pedido-cliente {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+
+        .pedido-info {
+            margin: 10px 0;
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+
+        .pedido-info div {
+            margin: 5px 0;
+        }
+
+        .pedido-total {
+            font-size: 1.3rem;
+            color: #800020;
+            font-weight: 700;
+            margin: 10px 0;
+            text-align: right;
+        }
+
+        .pedido-acoes {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-acao {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-width: 70px;
+            font-size: 0.85rem;
+        }
+
+        .btn-preparar { background: #FFC107; color: #000; }
+        .btn-saiu { background: #2196F3; color: #fff; }
+        .btn-entregue { background: #4CAF50; color: #fff; }
+        .btn-wpp { background: #25D366; color: #fff; }
+        .btn-imprimir { background: #FF9800; color: #fff; }
+        .btn-detalhes { background: #9C27B0; color: #fff; }
+
+        .btn-acao:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-acao:active {
+            transform: translateY(0);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border: 2px solid #800020;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .detalhes-pedido {
+            margin: 20px 0;
+        }
+
+        .detalhes-pedido table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .detalhes-pedido td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(128,0,32,0.3);
+        }
+
+        .detalhes-pedido td:first-child {
+            font-weight: 600;
+            color: #800020;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #800020;
+        }
+
+        .loading i {
+            margin-right: 10px;
+        }
+
+        /* Animação para novo pedido */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        .pedido-card.novo {
+            animation: pulse 2s infinite;
+        }
+
+        .badge-novo {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 2px solid #fff;
+        }
+
+        @media (max-width: 768px) {
+            .pedidos-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-acao {
+                font-size: 0.75rem;
+                padding: 8px;
+            }
+            
+            .status-info {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="logo-container" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid #800020;">
+                <img id="logoImg" src="img/logo-restaurante1.png" alt="Logo 40 Graus" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/60/800020/ffffff?text=40G'">
+            </div>
+            <div>
+                <h1 id="nomeRestaurante">📊 Painel - 40 Graus</h1>
+                <p id="dataAtual"></p>
+            </div>
+        </div>
+        <div class="status-info">
+            <div class="status-box novos">
+                <div class="numero" id="totalNovos">0</div>
+                <div>Novos</div>
+            </div>
+            <div class="status-box preparando">
+                <div class="numero" id="totalPreparando">0</div>
+                <div>Preparando</div>
+            </div>
+            <div class="status-box saiu">
+                <div class="numero" id="totalSaiu">0</div>
+                <div>Saiu</div>
+            </div>
+            <div class="status-box entregue">
+                <div class="numero" id="totalEntregue">0</div>
+                <div>Entregues</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filtros">
+        <button class="filtro-btn ativo" onclick="filtrarPedidos('todos')">📋 Todos</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('novo')">🟢 Novos</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('preparando')">🟡 Preparando</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('saiu')">🔵 Saiu</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('entregue')">✅ Entregues</button>
+    </div>
+
+    <div class="pedidos-grid" id="pedidosGrid">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Carregando pedidos...
+        </div>
+    </div>
+
+    <!-- MODAL DE DETALHES -->
+    <div class="modal" id="modalDetalhes">
+        <div class="modal-content">
+            <h2 style="color: #800020; margin-bottom: 20px;">📋 Detalhes do Pedido</h2>
+            <div id="detalhesConteudo" class="detalhes-pedido"></div>
+            <button class="btn-acao" onclick="fecharModal()" style="width:100%; margin-top:20px; background:#800020; color:#fff;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- ÁUDIO PARA NOTIFICAÇÃO -->
+    <audio id="notificacaoSonora" preload="auto" style="display:none;">
+        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ===== CONFIGURAÇÃO =====
+        const RESTAURANTE_ID = 'restaurante1';  // ← MUDA AQUI PARA CADA PAINEL
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjJG3qD1OhPJ_N-mfzH-ChMvHAez6XsGc",
+            authDomain: "graus-38cce.firebaseapp.com",
+            databaseURL: "https://graus-38cce-default-rtdb.firebaseio.com",
+            projectId: "graus-38cce",
+            storageBucket: "graus-38cce.firebasestorage.app",
+            messagingSenderId: "167323638749",
+            appId: "1:167323638749:web:6675d3d1edec31096b7434"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const dbRef = database.ref('restaurantes/' + RESTAURANTE_ID);
+
+        // ===== VARIÁVEIS GLOBAIS =====
+        let todosPedidos = [];
+        let filtroAtual = 'todos';
+        let dataHoje = new Date();
+        dataHoje.setHours(0, 0, 0, 0);
+        
+        // Cache para templates
+        const templateCache = new Map();
+        
+        // Set para IDs já notificados
+        const pedidosNotificados = new Set();
+
+        // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
+        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
+
+        // ===== TOCAR NOTIFICAÇÃO =====
+        function tocarNotificacao() {
+            const audio = document.getElementById('notificacaoSonora');
+            audio.play().catch(e => console.log('Erro ao tocar som:', e));
+        }
+
+        // ===== MOSTRAR NOTIFICAÇÃO =====
+        function mostrarNotificacao(titulo, corpo) {
+            if (Notification.permission === 'granted') {
+                new Notification(titulo, {
+                    body: corpo,
+                    icon: 'img/logo-restaurante1.png',
+                    requireInteraction: true,
+                    silent: false
+                });
+            }
+        }
+
+        // ===== VERIFICAR SE É HOJE =====
+        function ehHoje(timestamp) {
+            const data = new Date(timestamp);
+            data.setHours(0, 0, 0, 0);
+            return data.getTime() === dataHoje.getTime();
+        }
+
+        // ===== LISTENER EM TEMPO REAL (ÚNICA CONEXÃO) =====
+        function iniciarListenerRealtime() {
+            dbRef.child('pedidos').on('value', (snapshot) => {
+                const pedidos = snapshot.val();
+                
+                if (pedidos) {
+                    // Guardar IDs anteriores para detectar novos
+                    const idsAnteriores = new Set(todosPedidos.map(p => p.id));
+                    
+                    // Converter para array
+                    todosPedidos = Object.entries(pedidos).map(([id, data]) => ({
+                        id: id,
+                        ...data
+                    }));
+                    
+                    // Detectar novos pedidos de HOJE
+                    const novosPedidosHoje = todosPedidos.filter(p => 
+                        !idsAnteriores.has(p.id) && 
+                        p.status === 'novo' &&
+                        ehHoje(p.data)
+                    );
+                    
+                    if (novosPedidosHoje.length > 0) {
+                        tocarNotificacao();
+                        mostrarNotificacao(
+                            `🆕 ${novosPedidosHoje.length} NOVO(S) PEDIDO(S)!`,
+                            `${novosPedidosHoje.map(p => `#${p.numero || p.id.slice(-4)} - ${p.cliente?.nome}`).join('\n')}`
+                        );
+                    }
+                    
+                    // Atualizar interface
+                    atualizarEstatisticas();
+                    filtrarPedidos(filtroAtual);
+                    
+                    // Limpar cache de templates
+                    templateCache.clear();
+                } else {
+                    todosPedidos = [];
+                    document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum pedido encontrado</p>';
+                }
+            }, (error) => {
+                console.error('Erro no listener:', error);
+                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; color:#800020;">Erro ao carregar pedidos. Recarregue a página.</p>';
+            });
+        }
+
+        // ===== ATUALIZAR ESTATÍSTICAS (APENAS HOJE) =====
+        function atualizarEstatisticas() {
+            const stats = {
+                novo: 0,
+                preparando: 0,
+                saiu: 0,
+                entregue: 0
+            };
+            
+            // Contagem rápida com for loop
+            for (let i = 0; i < todosPedidos.length; i++) {
+                const pedido = todosPedidos[i];
+                if (ehHoje(pedido.data) && stats.hasOwnProperty(pedido.status)) {
+                    stats[pedido.status]++;
+                }
+            }
+
+            document.getElementById('totalNovos').textContent = stats.novo;
+            document.getElementById('totalPreparando').textContent = stats.preparando;
+            document.getElementById('totalSaiu').textContent = stats.saiu;
+            document.getElementById('totalEntregue').textContent = stats.entregue;
+        }
+
+        // ===== FILTRAR PEDIDOS (APENAS HOJE) =====
+        function filtrarPedidos(filtro) {
+            filtroAtual = filtro;
+            
+            // Atualizar botões
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.classList.remove('ativo');
+            });
+            if (event) event.target.classList.add('ativo');
+
+            // Filtrar por data PRIMEIRO (mais rápido)
+            const pedidosHoje = [];
+            for (let i = 0; i < todosPedidos.length; i++) {
+                const pedido = todosPedidos[i];
+                if (ehHoje(pedido.data)) {
+                    pedidosHoje.push(pedido);
+                }
+            }
+            
+            // Depois por status
+            let resultado = pedidosHoje;
+            if (filtro !== 'todos') {
+                resultado = pedidosHoje.filter(p => p.status === filtro);
+            }
+            
+            // Ordenar por data (mais recentes primeiro)
+            resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
+            renderizarPedidos(resultado);
+        }
+
+        // ===== RENDERIZAR PEDIDOS (COM CACHE) =====
+        function renderizarPedidos(pedidos) {
+            const grid = document.getElementById('pedidosGrid');
+            
+            if (pedidos.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido hoje</p>';
+                return;
+            }
+
+            // Usar DocumentFragment para melhor performance
+            const fragment = document.createDocumentFragment();
+            const template = document.createElement('template');
+
+            for (let i = 0; i < pedidos.length; i++) {
+                const pedido = pedidos[i];
+                const cacheKey = `${pedido.id}_${pedido.status}`;
+                
+                // Verificar cache
+                if (templateCache.has(cacheKey)) {
+                    fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
+                    continue;
+                }
+
+                const statusClass = pedido.status || 'novo';
+                const statusText = {
+                    'novo': '🟢 NOVO',
+                    'preparando': '🟡 PREPARANDO',
+                    'saiu': '🔵 SAIU',
+                    'entregue': '✅ ENTREGUE'
+                }[statusClass] || '🟢 NOVO';
+
+                // Formatar data de forma amigável
+                const dataPedido = new Date(pedido.data);
+                const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                const html = `
+                    <div class="pedido-card ${statusClass}">
+                        <div class="pedido-header">
+                            <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
+                            <span class="pedido-status status-${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="pedido-cliente">
+                            <i class="fas fa-user" style="margin-right:5px;"></i> ${pedido.cliente?.nome || 'Cliente'}
+                        </div>
+                        
+                        <div class="pedido-info">
+                            <div><i class="far fa-clock"></i> ${horaFormatada}</div>
+                            <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
+                            <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
+                            <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
+                        </div>
+                        
+                        <div class="pedido-total">
+                            R$ ${(pedido.total || 0).toFixed(2)}
+                        </div>
+
+                        <div class="pedido-acoes">
+                            ${statusClass !== 'entregue' ? `
+                                ${statusClass === 'novo' ? `
+                                    <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
+                                        <i class="fas fa-utensils"></i> PREPARAR
+                                    </button>
+                                ` : ''}
+                                
+                                ${statusClass === 'preparando' ? `
+                                    <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
+                                        <i class="fas fa-motorcycle"></i> SAIU
+                                    </button>
+                                ` : ''}
+                                
+                                ${statusClass === 'saiu' ? `
+                                    <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
+                                        <i class="fas fa-check"></i> ENTREGUE
+                                    </button>
+                                ` : ''}
+                            ` : ''}
+                            
+                            <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </button>
+                            
+                            <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
+                                <i class="fas fa-print"></i> IMPRIMIR
+                            </button>
+                            
+                            <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
+                                <i class="fas fa-eye"></i> DETALHES
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                template.innerHTML = html.trim();
+                const card = template.content.firstChild;
+                
+                // Salvar no cache
+                templateCache.set(cacheKey, card.cloneNode(true));
+                fragment.appendChild(card);
+            }
+
+            // Atualizar DOM de uma vez
+            grid.innerHTML = '';
+            grid.appendChild(fragment);
+        }
+
+        // ===== ATUALIZAR STATUS =====
+        function atualizarStatus(pedidoId, novoStatus) {
+            dbRef.child('pedidos/' + pedidoId + '/status').set(novoStatus)
+                .then(() => {
+                    console.log('Status atualizado com sucesso');
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar status:', error);
+                    alert('Erro ao atualizar status. Tente novamente.');
+                });
+        }
+
+        // ===== ENVIAR WHATSAPP OFICIAL =====
+        function enviarWhatsApp(pedidoId) {
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+
+            // Formatar número (remover caracteres não numéricos)
+            let telefone = pedido.cliente?.telefone || '';
+            telefone = telefone.replace(/\D/g, '');
+            
+            if (!telefone) {
+                telefone = prompt('Digite o telefone do cliente (com DDD):', '55');
+                if (!telefone) return;
+            }
+
+            // Garantir código do país
+            if (!telefone.startsWith('55')) {
+                telefone = '55' + telefone;
+            }
+
+            // Montar mensagem baseada no status
+            const statusMsg = {
+                'novo': 'foi confirmado',
+                'preparando': 'está sendo preparado',
+                'saiu': 'saiu para entrega',
+                'entregue': 'foi entregue'
+            }[pedido.status] || 'está em processamento';
+
+            const mensagem = `🍽️ *40 GRAUS*\n\nOlá *${pedido.cliente?.nome}*, tudo bem?\n\nSeu pedido *#${pedido.numero || pedido.id.slice(-4)}* ${statusMsg}.\n\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}\n\nAgradecemos pela preferência! 🙏`;
+
+            // Abrir WhatsApp Web
+            window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+        }
+
+        // ===== IMPRIMIR PEDIDO =====
+        function imprimirPedido(pedidoId) {
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+
+            const janelaImpressao = window.open('', '_blank');
+            
+            janelaImpressao.document.write(`
+                <html>
+                <head>
+                    <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
+                    <style>
+                        body { 
+                            font-family: 'Courier New', monospace; 
+                            font-size: 12px; 
+                            padding: 20px; 
+                            max-width: 300px;
+                            margin: 0 auto;
+                        }
+                        .header { 
+                            text-align: center; 
+                            margin-bottom: 20px; 
+                            border-bottom: 2px solid #800020;
+                            padding-bottom: 10px;
+                        }
+                        .header h1 {
+                            color: #800020;
+                            font-size: 18px;
+                            margin: 0;
+                        }
+                        .linha { 
+                            border-top: 1px dashed #000; 
+                            margin: 10px 0; 
+                        }
+                        table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                        }
+                        td { 
+                            padding: 3px; 
+                            vertical-align: top;
+                        }
+                        .total {
+                            font-size: 14px;
+                            font-weight: bold;
+                            border-top: 2px solid #800020;
+                            padding-top: 10px;
+                            margin-top: 10px;
+                            text-align: right;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 20px;
+                            font-style: italic;
+                            border-top: 1px dashed #000;
+                            padding-top: 10px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>40 GRAUS</h1>
+                        <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
+                        <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
+                    </div>
+                    
+                    <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
+                    ${pedido.cliente?.endereco ? `
+                        <p><strong>Endereço:</strong> ${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</p>
+                        <p><strong>Bairro:</strong> ${pedido.cliente.endereco.bairro || ''}</p>
+                    ` : ''}
+                    <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'} ${pedido.troco ? '(Troco R$ ' + pedido.troco + ')' : ''}</p>
+                    
+                    <div class="linha"></div>
+                    
+                    <h3>ITENS:</h3>
+            `);
+
+            pedido.itens?.forEach((item, idx) => {
+                janelaImpressao.document.write(`
+                    <p><strong>Refeição ${idx + 1}</strong><br>
+                    🥩 Carne: ${item.carnes?.join(', ') || 'Nenhuma'}<br>
+                    🍚 Acompanhamentos: ${item.acompanhamentos?.join(', ') || 'Nenhum'}<br>
+                `);
+                
+                if (item.feijoes?.length) janelaImpressao.document.write(`🫘 Feijão: ${item.feijoes.join(', ')}<br>`);
+                if (item.saladas?.length) janelaImpressao.document.write(`🥗 Salada: ${item.saladas.join(', ')}<br>`);
+                if (item.guarnicoes?.length) janelaImpressao.document.write(`🍟 Guarnição: ${item.guarnicoes.join(', ')}<br>`);
+                if (item.bebidas?.length) {
+                    item.bebidas.forEach(b => janelaImpressao.document.write(`🥤 ${b.nome}: R$ ${b.valor?.toFixed(2)}<br>`));
+                }
+                if (item.acrescimos?.length) {
+                    item.acrescimos.forEach(a => janelaImpressao.document.write(`➕ ${a.nome}: R$ ${a.valor?.toFixed(2)}<br>`));
+                }
+                if (item.observacao) janelaImpressao.document.write(`📝 Obs: ${item.observacao}<br>`);
+                
+                janelaImpressao.document.write(`</p>`);
+            });
+
+            janelaImpressao.document.write(`
+                    <div class="linha"></div>
+                    <p class="total"><strong>TOTAL: R$ ${pedido.total?.toFixed(2) || '0.00'}</strong></p>
+                    
+                    <div class="footer">
+                        <p>Obrigado pela preferência!</p>
+                        <p>40 GRAUS - O sabor da tradição</p>
+                    </div>
+                    
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(() => window.close(), 1000);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            
+            janelaImpressao.document.close();
+        }
+
+        // ===== VER DETALHES =====
+        function verDetalhes(pedidoId) {
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+
+            let html = `
+                <table>
+                    <tr><td>Número:</td><td><strong>#${pedido.numero || pedido.id.slice(-4)}</strong></td></tr>
+                    <tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>
+                    <tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>
+            `;
+
+            if (pedido.cliente?.endereco) {
+                html += `
+                    <tr><td>Endereço:</td><td>${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}${pedido.cliente.endereco.complemento ? ' - ' + pedido.cliente.endereco.complemento : ''}<br>${pedido.cliente.endereco.bairro || ''} - ${pedido.cliente.endereco.cidade || ''}</td></tr>
+                `;
+            }
+
+            html += `
+                    <tr><td>Pagamento:</td><td>${pedido.pagamento?.toUpperCase() || 'N/A'}${pedido.troco ? ' (Troco p/ R$ ' + pedido.troco + ')' : ''}</td></tr>
+                    <tr><td>Entrega:</td><td>${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</td></tr>
+                </table>
+                
+                <h3 style="color:#800020; margin:20px 0 10px;">Itens:</h3>
+                <table>
+            `;
+
+            pedido.itens?.forEach((item, idx) => {
+                html += `
+                    <tr><td colspan="2" style="color:#800020; padding-top:10px;"><strong>Refeição ${idx + 1}</strong></td></tr>
+                    <tr><td>Carnes:</td><td>${item.carnes?.join(', ') || 'Nenhuma'}</td></tr>
+                    <tr><td>Acompanhamentos:</td><td>${item.acompanhamentos?.join(', ') || 'Nenhum'}</td></tr>
+                `;
+                
+                if (item.feijoes?.length) html += `<tr><td>Feijões:</td><td>${item.feijoes.join(', ')}</td></tr>`;
+                if (item.saladas?.length) html += `<tr><td>Saladas:</td><td>${item.saladas.join(', ')}</td></tr>`;
+                if (item.guarnicoes?.length) html += `<tr><td>Guarnições:</td><td>${item.guarnicoes.join(', ')}</td></tr>`;
+                
+                if (item.bebidas?.length) {
+                    item.bebidas.forEach(b => html += `<tr><td>Bebida:</td><td>${b.nome} - R$ ${b.valor?.toFixed(2)}</td></tr>`);
+                }
+                
+                if (item.acrescimos?.length) {
+                    item.acrescimos.forEach(a => html += `<tr><td>Acréscimo:</td><td>${a.nome} - R$ ${a.valor?.toFixed(2)}</td></tr>`);
+                }
+                
+                if (item.observacao) {
+                    html += `<tr><td>Observação:</td><td>${item.observacao}</td></tr>`;
+                }
+            });
+
+            html += `
+                <tr><td colspan="2" style="border-top:2px solid #800020; padding-top:10px;"><strong>Total: R$ ${pedido.total?.toFixed(2) || '0.00'}</strong></td></tr>
+                </table>
+            `;
+
+            document.getElementById('detalhesConteudo').innerHTML = html;
+            document.getElementById('modalDetalhes').style.display = 'flex';
+        }
+
+        // ===== FECHAR MODAL =====
+        function fecharModal() {
+            document.getElementById('modalDetalhes').style.display = 'none';
+        }
+
+        // ===== INICIAR =====
+        window.onload = function() {
+            // Mostrar data atual
+            document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Carregar nome do restaurante
+            dbRef.child('info/nome').once('value', (snapshot) => {
+                if (snapshot.val()) {
+                    document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + snapshot.val();
+                }
+            });
+
+            // Iniciar listener em tempo real (ÚNICA CONEXÃO)
+            iniciarListenerRealtime();
+            
+            // Fechar modal com ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    fecharModal();
+                }
+            });
+            
+            // Fechar modal clicando fora
+            document.getElementById('modalDetalhes').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('modalDetalhes')) {
+                    fecharModal();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
