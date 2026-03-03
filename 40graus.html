@@ -1228,66 +1228,68 @@
             localStorage.setItem('enderecos_' + RESTAURANTE_ID, JSON.stringify(enderecosClientes));
         }
 
-        // ===== CARREGAR DADOS DO FIREBASE =====
+        // ===== CARREGAR DADOS OTIMIZADO - ÚNICA CONEXÃO =====
         function carregarDados() {
-            // Info do restaurante
-            dbRef.child('info').on('value', (snapshot) => {
-                const info = snapshot.val();
-                if (info) {
-                    document.getElementById('nomeRestaurante').textContent = info.nome;
-                    whatsappNumero = info.whatsapp;
-                    senhaMaster = info.senha_master;
-                    senhaView = info.senha_view;
-                    
-                    if (info.logo) {
-                        document.getElementById('logoImg').src = info.logo;
-                    }
-                }
-            });
-
-            // Cardápio
-            dbRef.child('cardapio').on('value', (snapshot) => {
-                if (snapshot.val()) {
-                    cardapio = snapshot.val();
-                    renderizarCardapio();
-                }
-            });
-
-            // Acréscimos
-            dbRef.child('acrescimos').on('value', (snapshot) => {
-                if (snapshot.val()) {
-                    acrescimos = snapshot.val();
-                    renderizarAcrescimos();
-                }
-            });
-
-            // Configurações
-            dbRef.child('config').on('value', (snapshot) => {
-                if (snapshot.val()) {
-                    config = snapshot.val();
-                    aplicarConfiguracoes();
-                }
-            });
-
-            // Visibilidade
-            dbRef.child('visibilidade').on('value', (snapshot) => {
-                if (snapshot.val()) {
-                    visibilidadeItens = snapshot.val();
-                    renderizarCardapio();
-                }
-            });
-            // Carregar visibilidade dos acréscimos
-            dbRef.child('visibilidadeAcrescimos').on('value', (snapshot) => {
-                if (snapshot.val()) {
-                    visibilidadeAcrescimos = snapshot.val();
-                    renderizarAcrescimos();
-                }
-            });                                          
-          
-
-
-
+     // ✅ UM ÚNICO LISTENER para TUDO
+     dbRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        console.log('📦 Dados recebidos:', Object.keys(data));
+        
+        // 1️⃣ INFO DO RESTAURANTE
+        if (data.info) {
+            document.getElementById('nomeRestaurante').textContent = data.info.nome || '40 Graus';
+            whatsappNumero = data.info.whatsapp || '';
+            senhaMaster = data.info.senha_master || '';
+            senhaView = data.info.senha_view || '';
+            
+            if (data.info.logo) {
+                document.getElementById('logoImg').src = data.info.logo;
+            }
         }
+        
+        // 2️⃣ CARDÁPIO
+        if (data.cardapio) {
+            cardapio = data.cardapio;
+            renderizarCardapio();
+        }
+        
+        // 3️⃣ ACRÉSCIMOS
+        if (data.acrescimos) {
+            acrescimos = data.acrescimos;
+            renderizarAcrescimos();
+        }
+        
+        // 4️⃣ CONFIGURAÇÕES
+        if (data.config) {
+            config = {
+                valorPrato: data.config.valorPrato || 25.90,
+                horaAbre: data.config.horaAbre || '11:00',
+                horaFecha: data.config.horaFecha || '23:00',
+                valorSemArroz: data.config.valorSemArroz || 3.00
+            };
+            aplicarConfiguracoes();
+        }
+        
+        // 5️⃣ VISIBILIDADE DOS ITENS
+        if (data.visibilidade) {
+            visibilidadeItens = data.visibilidade;
+            renderizarCardapio(); // Atualiza com as visibilidades
+        }
+        
+        // 6️⃣ VISIBILIDADE DOS ACRÉSCIMOS
+        if (data.visibilidadeAcrescimos) {
+            visibilidadeAcrescimos = data.visibilidadeAcrescimos;
+            renderizarAcrescimos(); // Atualiza com as visibilidades
+        }
+        
+        console.log('✅ Tudo carregado com SUCESSO em 1 conexão!');
+        
+    }, (error) => {
+        console.error('❌ Erro no Firebase:', error);
+    });
+}
 
         // ===== RENDERIZAR CARDÁPIO =====
         function renderizarCardapio() {
