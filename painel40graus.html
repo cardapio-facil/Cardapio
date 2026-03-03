@@ -692,7 +692,13 @@
             }
             if (item.observacao) janelaImpressao.document.write(`📝 Obs: ${item.observacao}<br>`);
             
-            janelaImpressao.document.write(`</p>`);
+           // 👉 **AQUI ESTÁ O QUE FALTAVA: SUBTOTAL DA REFEIÇÃO**
+        janelaImpressao.document.write(`<div class="subtotal">Subtotal: R$ ${subtotalItem.toFixed(2)}</div>`);
+        
+        janelaImpressao.document.write(`</div>`);
+        
+        totalGeral += subtotalItem;
+    
         });
 
         janelaImpressao.document.write(`
