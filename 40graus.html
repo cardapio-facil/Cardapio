@@ -9,14 +9,15 @@
     <style>
         /* ===== CONFIGURAÇÕES DE CORES (VOCÊ MUDA AQUI) ===== */
         :root {
-            --cor-primaria: #000000;        /* Cor vinho principal */
-            --cor-secundaria: #f0f0f0;      /* Tom mais claro */
-            --fundo-principal: #f0f0f0;       /* Fundo branco */
-            --fundo-secundario: #f0f0f0;      /* Cinza claro */
-            --texto-principal: #000000;         /* Texto escuro */
-            --texto-secundario: #f0f0f0;       /* Texto mais claro */
-            --borda: #f0f0f0;                   /* Cor das bordas */
+            --cor-primaria: #800020;        /* Cor vinho principal */
+            --cor-secundaria: #a00028;       /* Tom mais claro */
+            --fundo-principal: #cfcccc;       /* Fundo branco */
+            --fundo-secundario: #c5c5c5;      /* Cinza claro */
+            --texto-principal: #333333;        /* Texto escuro */
+            --texto-secundario: #666666;       /* Texto mais claro */
+            --borda: #dddddd;                   /* Cor das bordas */
         }
+
         * {
             margin: 0;
             padding: 0;
@@ -2033,8 +2034,7 @@ function renderizarCardapio() {
             return mensagem;
         }
 
-        // ===== ENVIAR WHATSAPP =====
-function enviarWhatsApp() {
+        function enviarWhatsApp() {
     console.log('🚀 INICIANDO ENVIO DO PEDIDO');
     console.log('1. Pedidos atuais:', pedidosAtuais);
     console.log('2. WhatsApp número:', whatsappNumero);
@@ -2051,10 +2051,17 @@ function enviarWhatsApp() {
         return;
     }
 
-    // ... resto do código
+    // Gera número aleatório para o pedido
+    const numeroPedido = Math.floor(Math.random() * 10000);
+    console.log('4. Número do pedido:', numeroPedido);
 
+    // Enviar WhatsApp
+    const mensagem = gerarMensagemWhatsApp();
+    window.open(`https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`, '_blank');
+
+    // Salvar no Firebase
     const pedidoId = 'pedido_' + Date.now();
-    console.log('4. ID do pedido:', pedidoId);
+    console.log('5. ID do pedido:', pedidoId);
     
     const pedidoData = {
         numero: numeroPedido,
@@ -2075,21 +2082,19 @@ function enviarWhatsApp() {
         },
         itens: pedidosAtuais,
         total: calcularTotal(),
-        taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 
-            (CONFIG.TIPO_FRETE === 'fixo' ? CONFIG.VALOR_FRETE_FIXO : parseFloat(document.getElementById('freteValor').dataset.valor) || 0) : 0,
+        taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0,
         pagamento: document.getElementById('pagamento').value,
         troco: document.getElementById('trocoValor').value || null,
         tipoEntrega: document.getElementById('tipoEntrega').value,
         status: 'novo'
     };
     
-    console.log('5. Dados do pedido:', pedidoData);
-    console.log('6. Caminho no Firebase:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
+    console.log('6. Dados do pedido:', pedidoData);
+    console.log('7. Caminho:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
 
     dbRef.child('pedidos/' + pedidoId).set(pedidoData)
         .then(() => {
             console.log('✅ SUCESSO! Pedido salvo!');
-            console.log('7. Pedido salvo em:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
             alert('Pedido enviado!');
             pedidosAtuais = [];
             atualizarPainelPedidos();
