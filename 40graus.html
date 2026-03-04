@@ -2029,6 +2029,17 @@ function renderizarCardapio() {
             }
 
             mensagem += `\n━━━━━━ *TOTAL DO PEDIDO* ━━━━━━\n`;
+
+            mensagem += `🧾 Subtotal Itens: R$ ${totalPratos.toFixed(2)}\n`;
+
+
+            if (taxa > 0) {
+    
+            mensagem += `🚚 Taxa de Entrega: R$ ${taxa.toFixed(2)}\n`;
+
+            }
+
+
             mensagem += `💰 *TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}*`;
             
             return mensagem;
