@@ -1952,87 +1952,110 @@ function renderizarCardapio() {
         }
 
         // ===== GERAR MENSAGEM WHATSAPP =====
-        function gerarMensagemWhatsApp() {
-            const nome = document.getElementById('nomeCliente').value;
-            let mensagem = `🍽️ *NOVO PEDIDO - ${document.getElementById('nomeRestaurante').textContent}* 🍽️\n\n`;
-            mensagem += `👤 *Cliente:* ${nome}\n`;
-            
-            if (document.getElementById('tipoEntrega').value === 'entrega') {
-                mensagem += `📍 *Endereço:* ${document.getElementById('rua').value}, ${document.getElementById('numero').value}`;
-                if (document.getElementById('complemento').value) {
-                    mensagem += ` - ${document.getElementById('complemento').value}`;
-                }
-                mensagem += `\n🏘️ *Bairro:* ${document.getElementById('bairro').value}`;
-                mensagem += `\n🏙️ *Cidade:* ${document.getElementById('cidade').value}`;
-            } else {
-                mensagem += `🏃 *Retirada no local*\n`;
-            }
+function gerarMensagemWhatsApp() {
 
-            mensagem += `\n💳 *Pagamento:* ${document.getElementById('pagamento').value.toUpperCase()}`;
-            
-            if (document.getElementById('pagamento').value === 'dinheiro' && document.getElementById('trocoValor').value) {
-                mensagem += `\n💰 *Troco:* R$ ${parseFloat(document.getElementById('trocoValor').value).toFixed(2)}`;
-            }
+    const nome = document.getElementById('nomeCliente').value;
+    const restaurante = document.getElementById('nomeRestaurante').textContent;
+    const tipoEntrega = document.getElementById('tipoEntrega').value;
+    const pagamento = document.getElementById('pagamento').value;
 
-            mensagem += `\n\n📋 *ITENS:*\n`;
-            
-            const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
-            let totalPratos = 0;
+    let mensagem = `🍽️ *NOVO PEDIDO - ${restaurante}*\n\n`;
+    mensagem += `👤 *Cliente:* ${nome}\n`;
 
-            pedidosAtuais.forEach((prato, idx) => {
-                let subtotalItem = valorPrato;
-                
-                mensagem += `\n━━━━━━ *REFEIÇÃO ${idx + 1}* ━━━━━━\n`;
-                mensagem += `🥩 Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
-                mensagem += `🍚 Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
-                
-                if (prato.acompanhamentos.includes('Sem Arroz')) {
-                    mensagem += `   └─ + Sem Arroz: R$ ${config.valorSemArroz.toFixed(2)}\n`;
-                    subtotalItem += config.valorSemArroz;
-                }
-                
-                if (prato.feijoes.length) mensagem += `🫘 Feijão: ${prato.feijoes.join(', ')}\n`;
-                if (prato.saladas.length) mensagem += `🥗 Salada: ${prato.saladas.join(', ')}\n`;
-                if (prato.guarnicoes.length) mensagem += `🍟 Guarn.: ${prato.guarnicoes.join(', ')}\n`;
-                
-                if (prato.bebidas.length) {
-                    prato.bebidas.forEach(b => {
-                        mensagem += `🥤 ${b.nome}: R$ ${b.valor.toFixed(2)}\n`;
-                        subtotalItem += b.valor;
-                    });
-                }
-                
-                if (prato.acrescimos.length) {
-                    prato.acrescimos.forEach(a => {
-                        mensagem += `➕ ${a.nome}: R$ ${a.valor.toFixed(2)}\n`;
-                        subtotalItem += a.valor;
-                    });
-                }
-                
-                if (prato.observacao) {
-                    mensagem += `📝 Obs: ${prato.observacao}\n`;
-                }
-                
-                mensagem += `┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅\n`;
-                mensagem += `💵 *Subtotal Refeição ${idx + 1}: R$ ${subtotalItem.toFixed(2)}*\n`;
-                
-                totalPratos += subtotalItem;
-            });
+    if (tipoEntrega === 'entrega') {
+        mensagem += `📍 *Endereço:* ${document.getElementById('rua').value}, ${document.getElementById('numero').value}`;
 
-            let taxa = 0;
-            if (document.getElementById('tipoEntrega').value === 'entrega') {
-                if (CONFIG.TIPO_FRETE === 'fixo') {
-                    taxa = CONFIG.VALOR_FRETE_FIXO;
-                } else {
-                    taxa = parseFloat(document.getElementById('freteValor').dataset.valor) || 0;
-                }
-            }
-
-            mensagem += `\n━━━━━━ *TOTAL DO PEDIDO* ━━━━━━\n`;
-            mensagem += `💰 *TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}*`;
-            
-            return mensagem;
+        if (document.getElementById('complemento').value) {
+            mensagem += ` - ${document.getElementById('complemento').value}`;
         }
+
+        mensagem += `\n🏘️ *Bairro:* ${document.getElementById('bairro').value}`;
+        mensagem += `\n🏙️ *Cidade:* ${document.getElementById('cidade').value}\n`;
+    } else {
+        mensagem += `🏃 *Retirada no local*\n`;
+    }
+
+    mensagem += `💳 *Pagamento:* ${pagamento.toUpperCase()}`;
+
+    if (pagamento === 'dinheiro' && document.getElementById('trocoValor').value) {
+        mensagem += `\n💰 *Troco para:* R$ ${parseFloat(document.getElementById('trocoValor').value).toFixed(2)}`;
+    }
+
+    mensagem += `\n\n----------------------------\n`;
+    mensagem += `📋 *ITENS:*\n`;
+
+    const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+    let totalPratos = 0;
+
+    pedidosAtuais.forEach((prato, idx) => {
+
+        let subtotalItem = valorPrato;
+
+        mensagem += `\n🍛 *REFEIÇÃO ${idx + 1}*\n`;
+        mensagem += `• Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
+        mensagem += `• Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
+
+        if (prato.acompanhamentos.includes('Sem Arroz')) {
+            mensagem += `   ↳ + Sem Arroz: R$ ${config.valorSemArroz.toFixed(2)}\n`;
+            subtotalItem += config.valorSemArroz;
+        }
+
+        if (prato.feijoes.length)
+            mensagem += `• Feijão: ${prato.feijoes.join(', ')}\n`;
+
+        if (prato.saladas.length)
+            mensagem += `• Salada: ${prato.saladas.join(', ')}\n`;
+
+        if (prato.guarnicoes.length)
+            mensagem += `• Guarnição: ${prato.guarnicoes.join(', ')}\n`;
+
+        if (prato.bebidas.length) {
+            prato.bebidas.forEach(b => {
+                mensagem += `• ${b.nome}: R$ ${b.valor.toFixed(2)}\n`;
+                subtotalItem += b.valor;
+            });
+        }
+
+        if (prato.acrescimos.length) {
+            prato.acrescimos.forEach(a => {
+                mensagem += `• ${a.nome}: R$ ${a.valor.toFixed(2)}\n`;
+                subtotalItem += a.valor;
+            });
+        }
+
+        if (prato.observacao) {
+            mensagem += `📝 Obs: ${prato.observacao}\n`;
+        }
+
+        mensagem += `💵 Subtotal Refeição ${idx + 1}: R$ ${subtotalItem.toFixed(2)}\n`;
+
+        totalPratos += subtotalItem;
+    });
+
+    // ===== FRETE =====
+    let taxa = 0;
+
+    if (tipoEntrega === 'entrega') {
+        if (CONFIG.TIPO_FRETE === 'fixo') {
+            taxa = CONFIG.VALOR_FRETE_FIXO;
+        } else {
+            taxa = parseFloat(document.getElementById('freteValor').dataset.valor) || 0;
+        }
+    }
+
+    const totalFinal = totalPratos + taxa;
+
+    mensagem += `\n============================\n`;
+    mensagem += `📦 Subtotal Itens: R$ ${totalPratos.toFixed(2)}\n`;
+
+    if (tipoEntrega === 'entrega') {
+        mensagem += `🚚 Taxa de Entrega: R$ ${taxa.toFixed(2)}\n`;
+    }
+
+    mensagem += `💰 *TOTAL GERAL: R$ ${totalFinal.toFixed(2)}*`;
+
+    return mensagem;
+}
 
        // ===== ENVIAR WHATSAPP E SALVAR NO FIREBASE =====
 function enviarWhatsApp() {
