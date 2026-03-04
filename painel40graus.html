@@ -441,21 +441,13 @@
         </div>
     </div>
 
-    <!-- MODAL CONFIG BAIRROS -->
+        <!-- MODAL CONFIG BAIRROS -->
     <div class="modal" id="modalBairros">
         <div class="modal-content">
-            <h2 style="color: #800020; margin-bottom: 20px;">🏘️ Configurar Bairros</h2>
+            <h2 style="color: #800020; margin-bottom: 20px;">🏘️ Configurar Bairros Atendidos</h2>
             
             <div class="bairros-lista" id="bairrosLista">
-                <!-- Bairros serão carregados aqui -->
-            </div>
-
-            <div class="novo-bairro">
-                <input type="text" id="novoBairroNome" placeholder="Nome do bairro">
-                <input type="number" id="novoBairroFrete" placeholder="Valor frete R$" step="0.01" min="0">
-                <button class="btn-acao" onclick="adicionarBairro()" style="background:#4CAF50; color:#fff; flex:0 0 auto;">
-                    <i class="fas fa-plus"></i> Adicionar
-                </button>
+                <!-- Cidades e bairros serão carregados aqui -->
             </div>
 
             <button class="btn-acao" onclick="fecharModal('modalBairros')" style="width:100%; margin-top:20px; background:#800020; color:#fff;">Fechar</button>
@@ -982,81 +974,115 @@ function verificarLogin() {
         }
     });
 }
-        // ===== CARREGAR BAIRROS =====
-        function carregarBairros() {
-            const lista = document.getElementById('bairrosLista');
-            
-            if (Object.keys(todosBairros).length === 0) {
-                lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhum bairro cadastrado</p>';
-                return;
-            }
+        // ===== CARREGAR CIDADES E BAIRROS =====
+function carregarBairros() {
+    const lista = document.getElementById('bairrosLista');
+    
+    // Busca cidades GLOBAIS
+    database.ref('bairros_globais').once('value', (snapshot) => {
+        const cidades = snapshot.val() || {};
+        
+        if (Object.keys(cidades).length === 0) {
+            lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma cidade cadastrada</p>';
+            return;
+        }
 
-            let html = '';
-            Object.entries(todosBairros).forEach(([key, bairro]) => {
-                html += `
-                    <div class="bairro-item">
+        let html = `
+            <div style="margin-bottom:20px;">
+                <label style="color:#800020; font-weight:600;">Selecione a cidade:</label>
+                <select id="seletorCidade" onchange="mudarCidade()" style="width:100%; padding:12px; margin-top:5px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;">
+        `;
+        
+        Object.entries(cidades).forEach(([key, cidade]) => {
+            html += `<option value="${key}">${cidade.nome}</option>`;
+        });
+        
+        html += `</select></div>`;
+        html += `<div id="bairrosContainer"></div>`;
+        
+        lista.innerHTML = html;
+        
+        // Carrega bairros da primeira cidade
+        mudarCidade();
+    });
+}
+// ===== FUNÇÕES AUXILIARES =====
+function toggleBairro(cidadeKey, bairroKey, ativo) {
+    const inputFrete = document.getElementById(`frete_${cidadeKey}_${bairroKey}`);
+    inputFrete.disabled = !ativo;
+    
+    if (ativo) {
+        inputFrete.focus();
+    } else {
+        // Se desativou, remove
+        dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).remove();
+    }
+}
+
+function salvarFrete(cidadeKey, bairroKey, valor) {
+    const frete = parseFloat(valor);
+    if (isNaN(frete) || frete < 0) return;
+    
+    dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).set({
+        cidade: cidadeKey,
+        bairro: bairroKey,
+        ativo: true,
+        frete: frete
+    }).then(() => {
+        // Feedback visual opcional
+        console.log('Frete salvo!');
+    });
+}
+
+// ===== MUDAR CIDADE =====
+function mudarCidade() {
+    const cidadeKey = document.getElementById('seletorCidade').value;
+    
+    Promise.all([
+        database.ref(`bairros_globais/${cidadeKey}/bairros`).once('value'),
+        dbRef.child('atendimento').once('value')
+    ]).then(([bairrosSnap, atendimentoSnap]) => {
+        const bairros = bairrosSnap.val() || {};
+        const atendimento = atendimentoSnap.val() || {};
+        
+        const container = document.getElementById('bairrosContainer');
+        
+        if (Object.keys(bairros).length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#999;">Nenhum bairro cadastrado nesta cidade</p>';
+            return;
+        }
+        
+        let html = `<h3 style="color:#800020; margin:20px 0;">Bairros:</h3>`;
+        
+        Object.entries(bairros).forEach(([key, bairro]) => {
+            const config = atendimento[`${cidadeKey}_${key}`] || { ativo: false, frete: 0 };
+            const ativo = config.ativo ? 'checked' : '';
+            const frete = config.frete || '';
+            
+            html += `
+                <div class="bairro-item">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <input type="checkbox" id="chk_${cidadeKey}_${key}" ${ativo} onchange="toggleBairro('${cidadeKey}', '${key}', this.checked)" style="width:20px; height:20px;">
                         <div class="bairro-info">
                             <div class="bairro-nome">${bairro.nome}</div>
-                            <div class="bairro-frete">Frete: R$ ${bairro.frete.toFixed(2)}</div>
-                        </div>
-                        <div class="bairro-acoes">
-                            <button class="btn-bairro editar" onclick="editarBairro('${key}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-bairro excluir" onclick="excluirBairro('${key}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </div>
                     </div>
-                `;
-            });
-            
-            lista.innerHTML = html;
-        }
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="color:#FFC107;">R$</span>
+                        <input type="number" id="frete_${cidadeKey}_${key}" value="${frete}" step="0.01" min="0" placeholder="Frete" 
+                               style="width:100px; padding:8px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;"
+                               ${!ativo ? 'disabled' : ''}
+                               onchange="salvarFrete('${cidadeKey}', '${key}', this.value)">
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    });
+}
 
-        // ===== ADICIONAR BAIRRO =====
-        function adicionarBairro() {
-            const nome = document.getElementById('novoBairroNome').value.trim();
-            const frete = parseFloat(document.getElementById('novoBairroFrete').value);
-            
-            if (!nome || isNaN(frete) || frete < 0) {
-                alert('Preencha todos os campos corretamente!');
-                return;
-            }
-
-            const key = nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-            
-            dbRef.child('bairros/' + key).set({
-                nome: nome,
-                frete: frete
-            }).then(() => {
-                document.getElementById('novoBairroNome').value = '';
-                document.getElementById('novoBairroFrete').value = '';
-                carregarBairros();
-            });
-        }
-
-        // ===== EDITAR BAIRRO =====
-        function editarBairro(key) {
-            const bairro = todosBairros[key];
-            const novoNome = prompt('Novo nome do bairro:', bairro.nome);
-            if (!novoNome) return;
-            
-            const novoFrete = parseFloat(prompt('Novo valor do frete:', bairro.frete));
-            if (isNaN(novoFrete) || novoFrete < 0) return;
-
-            dbRef.child('bairros/' + key).update({
-                nome: novoNome,
-                frete: novoFrete
-            });
-        }
-
-        // ===== EXCLUIR BAIRRO =====
-        function excluirBairro(key) {
-            if (confirm('Tem certeza que deseja excluir este bairro?')) {
-                dbRef.child('bairros/' + key).remove();
-            }
-        }
+        
 
         // ===== INICIAR =====
         window.onload = function() {
