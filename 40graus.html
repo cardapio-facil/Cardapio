@@ -2085,10 +2085,9 @@ function enviarWhatsApp() {
         }
     }
     // ===== NOVA VALIDAÇÃO: VERIFICAR SE BAIRRO É ATENDIDO =====
-        const freteValor = document.getElementById('freteValor');
-        if (freteValor.value === 'Bairro não atendido') {
-            erros.push('Verifica o CEP informado ou não atendemos este Bairro');
-        }
+      const freteValor = document.getElementById('freteValor');
+    if (freteValor.value === 'Bairro não atendido') {
+         erros.push('• Bairro não é atendido para entrega');
     }
     // Se houver erros, mostrar todos e parar
     if (erros.length > 0) {
@@ -2178,7 +2177,7 @@ function enviarWhatsApp() {
         .catch(error => {
             alert('Erro ao salvar pedido: ' + error.message);
         });
-
+}
         // ===== FUNÇÕES AUXILIARES =====
         function toggleTroco() {
             document.getElementById('trocoDiv').style.display = 
