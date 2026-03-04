@@ -434,7 +434,7 @@
         <div class="modal-content">
             <h2 style="color: #800020; margin-bottom: 20px;">🔐 Login Admin</h2>
             <div class="login-form">
-                <input type="password" id="senhamaster" placeholder="Digite a senha" onkeypress="if(event.key==='Enter') verificarLogin()">
+                <input type="password" id="senhaAdmin" placeholder="Digite a senha" onkeypress="if(event.key==='Enter') verificarLogin()">
                 <button class="btn-acao" onclick="verificarLogin()" style="background:#800020; color:#fff;">Entrar</button>
                 <button class="btn-acao" onclick="fecharModal('modalLogin')" style="background:#333;">Cancelar</button>
             </div>
@@ -965,24 +965,23 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // ===== VERIFICAR LOGIN =====
-        function verificarLogin() {
-            const senhaDigitada = document.getElementById('senhaAdmin').value;
-            
-            dbRef.child('info/senhaAdmin').once('value', (snapshot) => {
-                const senhaCorreta = snapshot.val();
-                
-                if (senhaDigitada === senhaCorreta) {
-                    adminLogado = true;
-                    document.getElementById('adminBtn').classList.add('ativo');
-                    fecharModal('modalLogin');
-                    abrirModalBairros();
-                } else {
-                    alert('Senha incorreta!');
-                }
-            });
+// ===== VERIFICAR LOGIN =====
+function verificarLogin() {
+    const senhaDigitada = document.getElementById('senhaAdmin').value;
+    
+    dbRef.child('info/senha_master').once('value', (snapshot) => {  // ← Mudado de 'senhaAdmin' para 'senha_master'
+        const senhaCorreta = snapshot.val();
+        
+        if (senhaDigitada === senhaCorreta) {
+            adminLogado = true;
+            document.getElementById('adminBtn').classList.add('ativo');
+            fecharModal('modalLogin');
+            abrirModalBairros();
+        } else {
+            alert('Senha incorreta!');
         }
-
+    });
+}
         // ===== CARREGAR BAIRROS =====
         function carregarBairros() {
             const lista = document.getElementById('bairrosLista');
