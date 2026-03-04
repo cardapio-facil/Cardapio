@@ -1951,48 +1951,139 @@ function renderizarCardapio() {
             }
         }
 
+        // ===== GERAR MENSAGEM WHATSAPP =====
+        function gerarMensagemWhatsApp() {
+            const nome = document.getElementById('nomeCliente').value;
+            let mensagem = `🍽️ *NOVO PEDIDO - ${document.getElementById('nomeRestaurante').textContent}* 🍽️\n\n`;
+            mensagem += `👤 *Cliente:* ${nome}\n`;
+            
+            if (document.getElementById('tipoEntrega').value === 'entrega') {
+                mensagem += `📍 *Endereço:* ${document.getElementById('rua').value}, ${document.getElementById('numero').value}`;
+                if (document.getElementById('complemento').value) {
+                    mensagem += ` - ${document.getElementById('complemento').value}`;
+                }
+                mensagem += `\n🏘️ *Bairro:* ${document.getElementById('bairro').value}`;
+                mensagem += `\n🏙️ *Cidade:* ${document.getElementById('cidade').value}`;
+            } else {
+                mensagem += `🏃 *Retirada no local*\n`;
+            }
+
+            mensagem += `\n💳 *Pagamento:* ${document.getElementById('pagamento').value.toUpperCase()}`;
+            
+            if (document.getElementById('pagamento').value === 'dinheiro' && document.getElementById('trocoValor').value) {
+                mensagem += `\n💰 *Troco:* R$ ${parseFloat(document.getElementById('trocoValor').value).toFixed(2)}`;
+            }
+
+            mensagem += `\n\n📋 *ITENS:*\n`;
+            
+            const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+            let totalPratos = 0;
+
+            pedidosAtuais.forEach((prato, idx) => {
+                let subtotalItem = valorPrato;
+                
+                mensagem += `\n━━━━━━ *REFEIÇÃO ${idx + 1}* ━━━━━━\n`;
+                mensagem += `🥩 Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
+                mensagem += `🍚 Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
+                
+                if (prato.acompanhamentos.includes('Sem Arroz')) {
+                    mensagem += `   └─ + Sem Arroz: R$ ${config.valorSemArroz.toFixed(2)}\n`;
+                    subtotalItem += config.valorSemArroz;
+                }
+                
+                if (prato.feijoes.length) mensagem += `🫘 Feijão: ${prato.feijoes.join(', ')}\n`;
+                if (prato.saladas.length) mensagem += `🥗 Salada: ${prato.saladas.join(', ')}\n`;
+                if (prato.guarnicoes.length) mensagem += `🍟 Guarn.: ${prato.guarnicoes.join(', ')}\n`;
+                
+                if (prato.bebidas.length) {
+                    prato.bebidas.forEach(b => {
+                        mensagem += `🥤 ${b.nome}: R$ ${b.valor.toFixed(2)}\n`;
+                        subtotalItem += b.valor;
+                    });
+                }
+                
+                if (prato.acrescimos.length) {
+                    prato.acrescimos.forEach(a => {
+                        mensagem += `➕ ${a.nome}: R$ ${a.valor.toFixed(2)}\n`;
+                        subtotalItem += a.valor;
+                    });
+                }
+                
+                if (prato.observacao) {
+                    mensagem += `📝 Obs: ${prato.observacao}\n`;
+                }
+                
+                mensagem += `┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅\n`;
+                mensagem += `💵 *Subtotal Refeição ${idx + 1}: R$ ${subtotalItem.toFixed(2)}*\n`;
+                
+                totalPratos += subtotalItem;
+            });
+
+            let taxa = 0;
+            if (document.getElementById('tipoEntrega').value === 'entrega') {
+                if (CONFIG.TIPO_FRETE === 'fixo') {
+                    taxa = CONFIG.VALOR_FRETE_FIXO;
+                } else {
+                    taxa = parseFloat(document.getElementById('freteValor').dataset.valor) || 0;
+                }
+            }
+
+            mensagem += `\n━━━━━━ *TOTAL DO PEDIDO* ━━━━━━\n`;
+            mensagem += `💰 *TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}*`;
+            
+            return mensagem;
+        }
+
 function enviarWhatsApp() {
     console.log('🚀 INICIANDO ENVIO DO PEDIDO');
     
+    // ===== VALIDAÇÕES =====
     if (pedidosAtuais.length === 0) {
-        alert('Adicione pelo menos uma Refeição!');
+        alert('❌ Adicione pelo menos uma Refeição ao pedido!');
         return;
     }
 
-    const nome = document.getElementById('nomeCliente').value;
+    const nome = document.getElementById('nomeCliente').value.trim();
     if (!nome) {
-        alert('Digite seu nome!');
+        alert('❌ Digite seu nome!');
         document.getElementById('nomeCliente').focus();
         return;
     }
 
-    // ✅ VALIDAÇÃO DO TELEFONE
-    const telefone = document.getElementById('telefone').value;
+    const telefone = document.getElementById('telefone').value.trim();
     if (!telefone || telefone.length < 10) {
-        alert('Digite um telefone válido para contato!');
+        alert('❌ Digite um telefone válido com DDD! (Ex: 31999999999)');
         document.getElementById('telefone').focus();
         return;
     }
 
-    // Validar campos para entrega
+    // Validações específicas para ENTREGA
     if (document.getElementById('tipoEntrega').value === 'entrega') {
-        if (!document.getElementById('bairro').value) {
-            alert('Preencha o bairro para entrega!');
-            document.getElementById('bairro').focus();
+        const bairro = document.getElementById('bairro').value.trim();
+        if (!bairro) {
+            alert('❌ Preencha o CEP ou digite o bairro manualmente!');
+            document.getElementById('cep').focus();
             return;
         }
-        if (!document.getElementById('rua').value) {
-            alert('Preencha a rua para entrega!');
+
+        const rua = document.getElementById('rua').value.trim();
+        if (!rua) {
+            alert('❌ Preencha a rua para entrega!');
             document.getElementById('rua').focus();
             return;
         }
-        if (!document.getElementById('numero').value) {
-            alert('Preencha o número para entrega!');
+
+        const numero = document.getElementById('numero').value.trim();
+        if (!numero) {
+            alert('❌ Preencha o número do endereço!');
             document.getElementById('numero').focus();
             return;
         }
     }
 
+    // ===== SE PASSOU NAS VALIDAÇÕES, CONTINUA =====
+    console.log('✅ Validações OK, enviando pedido...');
+    
     // Gera número aleatório para o pedido
     const numeroPedido = Math.floor(Math.random() * 10000);
     
@@ -2002,6 +2093,21 @@ function enviarWhatsApp() {
 
     // Salvar no Firebase
     const pedidoId = 'pedido_' + Date.now();
+    
+    // Calcula o total
+    let totalPratos = 0;
+    const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+    
+    pedidosAtuais.forEach(prato => {
+        let subtotal = valorPrato;
+        if (prato.acompanhamentos.includes('Sem Arroz')) subtotal += config.valorSemArroz;
+        prato.bebidas.forEach(b => subtotal += b.valor);
+        prato.acrescimos.forEach(a => subtotal += a.valor);
+        totalPratos += subtotal;
+    });
+
+    const taxaEntrega = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
+    const totalFinal = totalPratos + taxaEntrega;
     
     const pedidoData = {
         numero: numeroPedido,
@@ -2021,8 +2127,8 @@ function enviarWhatsApp() {
             }
         },
         itens: pedidosAtuais,
-        total: calcularTotal(),  // ← Agora chama a função que adicionamos
-        taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0,
+        total: totalFinal,
+        taxaEntrega: taxaEntrega,
         pagamento: document.getElementById('pagamento').value,
         troco: document.getElementById('trocoValor').value || null,
         tipoEntrega: document.getElementById('tipoEntrega').value,
@@ -2031,11 +2137,27 @@ function enviarWhatsApp() {
 
     dbRef.child('pedidos/' + pedidoId).set(pedidoData)
         .then(() => {
-            alert('Pedido enviado!');
+            alert('✅ Pedido enviado com sucesso!');
+            
+            // Limpar pedidos após sucesso
             pedidosAtuais = [];
             atualizarPainelPedidos();
+            
+            // Limpar formulário
+            document.getElementById('nomeCliente').value = '';
+            document.getElementById('telefone').value = '';
+            document.getElementById('cep').value = '';
+            document.getElementById('rua').value = '';
+            document.getElementById('numero').value = '';
+            document.getElementById('bairro').value = '';
+            document.getElementById('cidade').value = '';
+            document.getElementById('complemento').value = '';
+            document.getElementById('referencia').value = '';
         })
-        .catch(error => console.error('Erro:', error));
+        .catch(error => {
+            console.error('❌ Erro ao salvar:', error);
+            alert('Erro ao salvar pedido: ' + error.message);
+        });
 }
         // ===== FUNÇÕES AUXILIARES =====
         function toggleTroco() {
