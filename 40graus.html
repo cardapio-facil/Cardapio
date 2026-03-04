@@ -2034,7 +2034,8 @@ function renderizarCardapio() {
             return mensagem;
         }
 
-        function enviarWhatsApp() {
+       // ===== ENVIAR WHATSAPP E SALVAR NO FIREBASE =====
+function enviarWhatsApp() {
     console.log('🚀 INICIANDO ENVIO DO PEDIDO');
     console.log('1. Pedidos atuais:', pedidosAtuais);
     console.log('2. WhatsApp número:', whatsappNumero);
@@ -2051,17 +2052,50 @@ function renderizarCardapio() {
         return;
     }
 
+    // Validar campos obrigatórios para entrega
+    if (document.getElementById('tipoEntrega').value === 'entrega') {
+        if (!document.getElementById('bairro').value) {
+            alert('Preencha o bairro para entrega!');
+            return;
+        }
+        if (!document.getElementById('rua').value) {
+            alert('Preencha a rua para entrega!');
+            return;
+        }
+        if (!document.getElementById('numero').value) {
+            alert('Preencha o número para entrega!');
+            return;
+        }
+    }
+
     // Gera número aleatório para o pedido
     const numeroPedido = Math.floor(Math.random() * 10000);
     console.log('4. Número do pedido:', numeroPedido);
 
     // Enviar WhatsApp
     const mensagem = gerarMensagemWhatsApp();
-    window.open(`https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`, '_blank');
+    const linkWhatsApp = `https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`;
+    console.log('5. Link WhatsApp:', linkWhatsApp);
+    window.open(linkWhatsApp, '_blank');
 
-    // Salvar no Firebase
+    // Prepara dados para salvar no Firebase
     const pedidoId = 'pedido_' + Date.now();
-    console.log('5. ID do pedido:', pedidoId);
+    console.log('6. ID do pedido:', pedidoId);
+    
+    // Calcula o total
+    let totalPratos = 0;
+    const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+    
+    pedidosAtuais.forEach(prato => {
+        let subtotal = valorPrato;
+        if (prato.acompanhamentos.includes('Sem Arroz')) subtotal += config.valorSemArroz;
+        prato.bebidas.forEach(b => subtotal += b.valor);
+        prato.acrescimos.forEach(a => subtotal += a.valor);
+        totalPratos += subtotal;
+    });
+
+    const taxaEntrega = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
+    const totalFinal = totalPratos + taxaEntrega;
     
     const pedidoData = {
         numero: numeroPedido,
@@ -2081,27 +2115,41 @@ function renderizarCardapio() {
             }
         },
         itens: pedidosAtuais,
-        total: calcularTotal(),
-        taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0,
+        total: totalFinal,
+        taxaEntrega: taxaEntrega,
         pagamento: document.getElementById('pagamento').value,
         troco: document.getElementById('trocoValor').value || null,
         tipoEntrega: document.getElementById('tipoEntrega').value,
         status: 'novo'
     };
     
-    console.log('6. Dados do pedido:', pedidoData);
-    console.log('7. Caminho:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
+    console.log('7. Dados do pedido:', pedidoData);
+    console.log('8. Caminho no Firebase:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
 
+    // Salvar no Firebase
     dbRef.child('pedidos/' + pedidoId).set(pedidoData)
         .then(() => {
-            console.log('✅ SUCESSO! Pedido salvo!');
-            alert('Pedido enviado!');
+            console.log('✅ SUCESSO! Pedido salvo no Firebase!');
+            alert('Pedido enviado com sucesso!');
+            
+            // Limpar pedidos após sucesso
             pedidosAtuais = [];
             atualizarPainelPedidos();
+            
+            // Limpar formulário (opcional)
+            document.getElementById('nomeCliente').value = '';
+            document.getElementById('telefone').value = '';
+            document.getElementById('cep').value = '';
+            document.getElementById('rua').value = '';
+            document.getElementById('numero').value = '';
+            document.getElementById('bairro').value = '';
+            document.getElementById('cidade').value = '';
+            document.getElementById('complemento').value = '';
+            document.getElementById('referencia').value = '';
         })
         .catch(error => {
-            console.error('❌ ERRO ao salvar:', error);
-            alert('Erro: ' + error.message);
+            console.error('❌ ERRO ao salvar no Firebase:', error);
+            alert('Erro ao salvar pedido: ' + error.message);
         });
 }
         // ===== FUNÇÕES AUXILIARES =====
