@@ -558,10 +558,27 @@
                     document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + data.info.nome;
                 }
                 
-                // Carregar bairros
+                // Carregar bairros (compatível com novo formato)
+                todosBairros = {}; // Limpa
+
+                // Tenta carregar do formato ANTIGO (bairros)
                 if (data.bairros) {
                     todosBairros = data.bairros;
-                }
+}
+                // Tenta carregar do formato NOVO (atendimento)
+                else if (data.atendimento) {
+                    // Converte atendimento para o formato que o painel espera
+                    Object.entries(data.atendimento).forEach(([chave, valor]) => {
+                        // Chave tem formato: "cidade_bairro"
+                        const partes = chave.split('_');
+                        const bairroKey = partes[1]; // Pega só o bairro
+
+                        todosBairros[bairroKey] = {
+                            nome: bairroKey.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                            frete: valor.frete
+        };
+    });
+}
                 
                 // Carregar pedidos
                 if (data.pedidos) {
