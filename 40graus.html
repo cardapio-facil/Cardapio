@@ -2034,65 +2034,53 @@ function renderizarCardapio() {
             return mensagem;
         }
 
+       // ===== ENVIAR WHATSAPP E SALVAR NO FIREBASE =====
 function enviarWhatsApp() {
     console.log('🚀 INICIANDO ENVIO DO PEDIDO');
+    console.log('1. Pedidos atuais:', pedidosAtuais);
+    console.log('2. WhatsApp número:', whatsappNumero);
+    console.log('3. Nome do cliente:', document.getElementById('nomeCliente').value);
     
-    // ===== VALIDAÇÕES =====
     if (pedidosAtuais.length === 0) {
-        alert('❌ Adicione pelo menos uma Refeição ao pedido!');
+        alert('Adicione pelo menos uma Refeição!');
         return;
     }
 
-    const nome = document.getElementById('nomeCliente').value.trim();
+    const nome = document.getElementById('nomeCliente').value;
     if (!nome) {
-        alert('❌ Digite seu nome!');
-        document.getElementById('nomeCliente').focus();
+        alert('Digite seu nome!');
         return;
     }
 
-    const telefone = document.getElementById('telefone').value.trim();
-    if (!telefone || telefone.length < 10) {
-        alert('❌ Digite um telefone válido com DDD! (Ex: 31999999999)');
-        document.getElementById('telefone').focus();
-        return;
-    }
-
-    // Validações específicas para ENTREGA
+    // Validar campos obrigatórios para entrega
     if (document.getElementById('tipoEntrega').value === 'entrega') {
-        const bairro = document.getElementById('bairro').value.trim();
-        if (!bairro) {
-            alert('❌ Preencha o CEP ou digite o bairro manualmente!');
-            document.getElementById('cep').focus();
+        if (!document.getElementById('bairro').value) {
+            alert('Preencha o bairro para entrega!');
             return;
         }
-
-        const rua = document.getElementById('rua').value.trim();
-        if (!rua) {
-            alert('❌ Preencha a rua para entrega!');
-            document.getElementById('rua').focus();
+        if (!document.getElementById('rua').value) {
+            alert('Preencha a rua para entrega!');
             return;
         }
-
-        const numero = document.getElementById('numero').value.trim();
-        if (!numero) {
-            alert('❌ Preencha o número do endereço!');
-            document.getElementById('numero').focus();
+        if (!document.getElementById('numero').value) {
+            alert('Preencha o número para entrega!');
             return;
         }
     }
 
-    // ===== SE PASSOU NAS VALIDAÇÕES, CONTINUA =====
-    console.log('✅ Validações OK, enviando pedido...');
-    
     // Gera número aleatório para o pedido
     const numeroPedido = Math.floor(Math.random() * 10000);
-    
+    console.log('4. Número do pedido:', numeroPedido);
+
     // Enviar WhatsApp
     const mensagem = gerarMensagemWhatsApp();
-    window.open(`https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`, '_blank');
+    const linkWhatsApp = `https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`;
+    console.log('5. Link WhatsApp:', linkWhatsApp);
+    window.open(linkWhatsApp, '_blank');
 
-    // Salvar no Firebase
+    // Prepara dados para salvar no Firebase
     const pedidoId = 'pedido_' + Date.now();
+    console.log('6. ID do pedido:', pedidoId);
     
     // Calcula o total
     let totalPratos = 0;
@@ -2115,7 +2103,7 @@ function enviarWhatsApp() {
         dataFormatada: new Date().toLocaleString('pt-BR'),
         cliente: {
             nome: nome,
-            telefone: telefone,
+            telefone: document.getElementById('telefone').value,
             endereco: {
                 rua: document.getElementById('rua').value,
                 numero: document.getElementById('numero').value,
@@ -2134,16 +2122,21 @@ function enviarWhatsApp() {
         tipoEntrega: document.getElementById('tipoEntrega').value,
         status: 'novo'
     };
+    
+    console.log('7. Dados do pedido:', pedidoData);
+    console.log('8. Caminho no Firebase:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
 
+    // Salvar no Firebase
     dbRef.child('pedidos/' + pedidoId).set(pedidoData)
         .then(() => {
-            alert('✅ Pedido enviado com sucesso!');
+            console.log('✅ SUCESSO! Pedido salvo no Firebase!');
+            alert('Pedido enviado com sucesso!');
             
             // Limpar pedidos após sucesso
             pedidosAtuais = [];
             atualizarPainelPedidos();
             
-            // Limpar formulário
+            // Limpar formulário (opcional)
             document.getElementById('nomeCliente').value = '';
             document.getElementById('telefone').value = '';
             document.getElementById('cep').value = '';
@@ -2155,7 +2148,7 @@ function enviarWhatsApp() {
             document.getElementById('referencia').value = '';
         })
         .catch(error => {
-            console.error('❌ Erro ao salvar:', error);
+            console.error('❌ ERRO ao salvar no Firebase:', error);
             alert('Erro ao salvar pedido: ' + error.message);
         });
 }
