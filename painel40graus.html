@@ -53,11 +53,38 @@
         .status-box.preparando { border-color: #FFC107; }
         .status-box.saiu { border-color: #2196F3; }
         .status-box.entregue { border-color: #9C27B0; }
+        .status-box.cancelado { border-color: #dc3545; }
 
         .status-box .numero {
             font-size: 2rem;
             font-weight: 700;
             color: #800020;
+        }
+
+        .admin-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #800020;
+            color: #fff;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .admin-btn.ativo {
+            background: #800020;
+            color: #fff;
+            border-color: #fff;
+        }
+
+        .admin-btn:hover {
+            transform: rotate(90deg);
+            background: #800020;
         }
 
         .filtros {
@@ -112,6 +139,7 @@
         .pedido-card.preparando { border-left: 5px solid #FFC107; }
         .pedido-card.saiu { border-left: 5px solid #2196F3; }
         .pedido-card.entregue { border-left: 5px solid #9C27B0; opacity: 0.8; }
+        .pedido-card.cancelado { border-left: 5px solid #dc3545; opacity: 0.7; }
 
         .pedido-header {
             display: flex;
@@ -138,6 +166,7 @@
         .status-preparando { background: #FFC107; color: #000; }
         .status-saiu { background: #2196F3; color: #fff; }
         .status-entregue { background: #9C27B0; color: #fff; }
+        .status-cancelado { background: #dc3545; color: #fff; }
 
         .pedido-cliente {
             font-size: 1.1rem;
@@ -161,6 +190,13 @@
             font-weight: 700;
             margin: 10px 0;
             text-align: right;
+        }
+
+        .pedido-frete {
+            font-size: 0.9rem;
+            color: #FFC107;
+            text-align: right;
+            margin-top: -5px;
         }
 
         .pedido-acoes {
@@ -189,6 +225,7 @@
         .btn-preparar { background: #FFC107; color: #000; }
         .btn-saiu { background: #2196F3; color: #fff; }
         .btn-entregue { background: #4CAF50; color: #fff; }
+        .btn-cancelar { background: #dc3545; color: #fff; }
         .btn-wpp { background: #25D366; color: #fff; }
         .btn-imprimir { background: #FF9800; color: #fff; }
         .btn-detalhes { background: #9C27B0; color: #fff; }
@@ -196,10 +233,6 @@
         .btn-acao:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .btn-acao:active {
-            transform: translateY(0);
         }
 
         .modal {
@@ -221,50 +254,91 @@
             border-radius: 20px;
             padding: 30px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 80vh;
             overflow-y: auto;
         }
 
-        .detalhes-pedido {
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .login-form input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #800020;
+            border-radius: 10px;
+            padding: 15px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #fff;
+        }
+
+        .bairros-lista {
             margin: 20px 0;
         }
 
-        .detalhes-pedido table {
-            width: 100%;
-            border-collapse: collapse;
+        .bairro-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #800020;
+            border-radius: 10px;
+            margin-bottom: 10px;
         }
 
-        .detalhes-pedido td {
-            padding: 8px;
-            border-bottom: 1px solid rgba(128,0,32,0.3);
+        .bairro-info {
+            flex: 1;
         }
 
-        .detalhes-pedido td:first-child {
+        .bairro-nome {
             font-weight: 600;
             color: #800020;
         }
 
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2rem;
-            color: #800020;
+        .bairro-frete {
+            color: #FFC107;
         }
 
-        .loading i {
-            margin-right: 10px;
+        .bairro-acoes {
+            display: flex;
+            gap: 10px;
         }
 
-        /* Animação para novo pedido */
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        .btn-bairro {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 5px;
         }
 
-        .pedido-card.novo {
-            animation: pulse 2s infinite;
+        .btn-bairro.editar:hover { color: #FFC107; }
+        .btn-bairro.excluir:hover { color: #dc3545; }
+
+        .novo-bairro {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .novo-bairro input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #800020;
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            min-width: 150px;
         }
 
         .badge-novo {
@@ -311,32 +385,42 @@
                 <p id="dataAtual"></p>
             </div>
         </div>
-        <div class="status-info">
-            <div class="status-box novos">
-                <div class="numero" id="totalNovos">0</div>
-                <div>Novos</div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="status-info">
+                <div class="status-box novos">
+                    <div class="numero" id="totalNovos">0</div>
+                    <div>Novos</div>
+                </div>
+                <div class="status-box preparando">
+                    <div class="numero" id="totalPreparando">0</div>
+                    <div>Preparando</div>
+                </div>
+                <div class="status-box saiu">
+                    <div class="numero" id="totalSaiu">0</div>
+                    <div>Saiu</div>
+                </div>
+                <div class="status-box entregue">
+                    <div class="numero" id="totalEntregue">0</div>
+                    <div>Entregues</div>
+                </div>
+                <div class="status-box cancelado">
+                    <div class="numero" id="totalCancelado">0</div>
+                    <div>Cancelados</div>
+                </div>
             </div>
-            <div class="status-box preparando">
-                <div class="numero" id="totalPreparando">0</div>
-                <div>Preparando</div>
-            </div>
-            <div class="status-box saiu">
-                <div class="numero" id="totalSaiu">0</div>
-                <div>Saiu</div>
-            </div>
-            <div class="status-box entregue">
-                <div class="numero" id="totalEntregue">0</div>
-                <div>Entregues</div>
-            </div>
+            <button class="admin-btn" id="adminBtn" onclick="abrirModalLogin()">
+                <i class="fas fa-cog"></i>
+            </button>
         </div>
     </div>
 
     <div class="filtros">
-        <button class="filtro-btn ativo" onclick="filtrarPedidos('todos')">📋 Todos</button>
+        <button class="filtro-btn ativo" onclick="filtrarPedidos('todos')">📋 Todos (2 dias)</button>
         <button class="filtro-btn" onclick="filtrarPedidos('novo')">🟢 Novos</button>
         <button class="filtro-btn" onclick="filtrarPedidos('preparando')">🟡 Preparando</button>
         <button class="filtro-btn" onclick="filtrarPedidos('saiu')">🔵 Saiu</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('entregue')">✅ Entregues</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('entregue')">✅ Entregues (2 dias)</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('cancelado')">❌ Cancelados</button>
     </div>
 
     <div class="pedidos-grid" id="pedidosGrid">
@@ -345,16 +429,48 @@
         </div>
     </div>
 
-    <!-- MODAL DE DETALHES -->
+    <!-- MODAL LOGIN -->
+    <div class="modal" id="modalLogin">
+        <div class="modal-content">
+            <h2 style="color: #800020; margin-bottom: 20px;">🔐 Login Admin</h2>
+            <div class="login-form">
+                <input type="password" id="senhaAdmin" placeholder="Digite a senha" onkeypress="if(event.key==='Enter') verificarLogin()">
+                <button class="btn-acao" onclick="verificarLogin()" style="background:#800020; color:#fff;">Entrar</button>
+                <button class="btn-acao" onclick="fecharModal('modalLogin')" style="background:#333;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIG BAIRROS -->
+    <div class="modal" id="modalBairros">
+        <div class="modal-content">
+            <h2 style="color: #800020; margin-bottom: 20px;">🏘️ Configurar Bairros</h2>
+            
+            <div class="bairros-lista" id="bairrosLista">
+                <!-- Bairros serão carregados aqui -->
+            </div>
+
+            <div class="novo-bairro">
+                <input type="text" id="novoBairroNome" placeholder="Nome do bairro">
+                <input type="number" id="novoBairroFrete" placeholder="Valor frete R$" step="0.01" min="0">
+                <button class="btn-acao" onclick="adicionarBairro()" style="background:#4CAF50; color:#fff; flex:0 0 auto;">
+                    <i class="fas fa-plus"></i> Adicionar
+                </button>
+            </div>
+
+            <button class="btn-acao" onclick="fecharModal('modalBairros')" style="width:100%; margin-top:20px; background:#800020; color:#fff;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- MODAL DETALHES -->
     <div class="modal" id="modalDetalhes">
         <div class="modal-content">
             <h2 style="color: #800020; margin-bottom: 20px;">📋 Detalhes do Pedido</h2>
             <div id="detalhesConteudo" class="detalhes-pedido"></div>
-            <button class="btn-acao" onclick="fecharModal()" style="width:100%; margin-top:20px; background:#800020; color:#fff;">Fechar</button>
+            <button class="btn-acao" onclick="fecharModal('modalDetalhes')" style="width:100%; margin-top:20px; background:#800020; color:#fff;">Fechar</button>
         </div>
     </div>
 
-    <!-- ÁUDIO PARA NOTIFICAÇÃO -->
     <audio id="notificacaoSonora" preload="auto" style="display:none;">
         <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
     </audio>
@@ -362,564 +478,615 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-   <script>
-    // ===== CONFIGURAÇÃO =====
-    const RESTAURANTE_ID = 'restaurante1';
-    
-    const firebaseConfig = {
-        apiKey: "AIzaSyDjJG3qD1OhPJ_N-mfzH-ChMvHAez6XsGc",
-        authDomain: "graus-38cce.firebaseapp.com",
-        databaseURL: "https://graus-38cce-default-rtdb.firebaseio.com",
-        projectId: "graus-38cce",
-        storageBucket: "graus-38cce.firebasestorage.app",
-        messagingSenderId: "167323638749",
-        appId: "1:167323638749:web:6675d3d1edec31096b7434"
-    };
+    <script>
+        // ===== CONFIGURAÇÃO =====
+        const RESTAURANTE_ID = 'restaurante1';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjJG3qD1OhPJ_N-mfzH-ChMvHAez6XsGc",
+            authDomain: "graus-38cce.firebaseapp.com",
+            databaseURL: "https://graus-38cce-default-rtdb.firebaseio.com",
+            projectId: "graus-38cce",
+            storageBucket: "graus-38cce.firebasestorage.app",
+            messagingSenderId: "167323638749",
+            appId: "1:167323638749:web:6675d3d1edec31096b7434"
+        };
 
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const dbRef = database.ref('restaurantes/' + RESTAURANTE_ID);
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const dbRef = database.ref('restaurantes/' + RESTAURANTE_ID);
 
-    // ===== VARIÁVEIS GLOBAIS =====
-    let todosPedidos = [];
-    let filtroAtual = 'todos';
-    let dataHoje = new Date();
-    dataHoje.setHours(0, 0, 0, 0);
-    
-    const templateCache = new Map();
+        // ===== VARIÁVEIS GLOBAIS =====
+        let todosPedidos = [];
+        let todosBairros = {};
+        let filtroAtual = 'todos';
+        let adminLogado = false;
+        
+        const templateCache = new Map();
 
-    // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
-    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
-    }
+        // ===== VERIFICAR SE ESTÁ NO INTERVALO DE 2 DIAS =====
+        function ultimos2Dias(timestamp) {
+            const data = new Date(timestamp);
+            const hoje = new Date();
+            const doisDiasAtras = new Date();
+            doisDiasAtras.setDate(hoje.getDate() - 2);
+            
+            data.setHours(0, 0, 0, 0);
+            doisDiasAtras.setHours(0, 0, 0, 0);
+            
+            return data >= doisDiasAtras;
+        }
 
-    // ===== TOCAR NOTIFICAÇÃO =====
-    function tocarNotificacao() {
-        const audio = document.getElementById('notificacaoSonora');
-        audio.play().catch(e => console.log('Erro ao tocar som:', e));
-    }
+        // ===== VERIFICAR SE É HOJE =====
+        function ehHoje(timestamp) {
+            const data = new Date(timestamp);
+            const hoje = new Date();
+            data.setHours(0, 0, 0, 0);
+            hoje.setHours(0, 0, 0, 0);
+            return data.getTime() === hoje.getTime();
+        }
 
-    // ===== MOSTRAR NOTIFICAÇÃO =====
-    function mostrarNotificacao(titulo, corpo) {
-        if (Notification.permission === 'granted') {
-            new Notification(titulo, {
-                body: corpo,
-                icon: 'img/logorestaurante1.png',
-                requireInteraction: true
+        // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
+        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
+
+        // ===== TOCAR NOTIFICAÇÃO =====
+        function tocarNotificacao() {
+            const audio = document.getElementById('notificacaoSonora');
+            audio.play().catch(e => console.log('Erro ao tocar som:', e));
+        }
+
+        // ===== MOSTRAR NOTIFICAÇÃO =====
+        function mostrarNotificacao(titulo, corpo) {
+            if (Notification.permission === 'granted') {
+                new Notification(titulo, {
+                    body: corpo,
+                    icon: 'img/logorestaurante1.png',
+                    requireInteraction: true
+                });
+            }
+        }
+
+        // ===== LISTENER PRINCIPAL =====
+        function iniciarListenerUnico() {
+            document.getElementById('pedidosGrid').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando pedidos...</div>';
+            
+            dbRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                console.log('📦 Dados recebidos:', data);
+                
+                if (!data) {
+                    document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum dado encontrado</p>';
+                    return;
+                }
+                
+                // Nome do restaurante
+                if (data.info?.nome) {
+                    document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + data.info.nome;
+                }
+                
+                // Carregar bairros
+                if (data.bairros) {
+                    todosBairros = data.bairros;
+                }
+                
+                // Carregar pedidos
+                if (data.pedidos) {
+                    todosPedidos = Object.entries(data.pedidos).map(([id, pedido]) => ({
+                        id: id,
+                        ...pedido
+                    }));
+                    
+                    console.log(`📋 ${todosPedidos.length} pedidos carregados`);
+                    
+                    atualizarEstatisticas();
+                    filtrarPedidos(filtroAtual);
+                    templateCache.clear();
+                }
+            }, (error) => {
+                console.error('❌ Erro no Firebase:', error);
+                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; color:#800020;">Erro ao carregar dados</p>';
             });
         }
-    }
 
-    // ===== VERIFICAR SE É HOJE =====
-    function ehHoje(timestamp) {
-        const data = new Date(timestamp);
-        data.setHours(0, 0, 0, 0);
-        return data.getTime() === dataHoje.getTime();
-    }
-
-    // ===== LISTENER PRINCIPAL (ÚNICO) =====
-    function iniciarListenerUnico() {
-        // Mostrar loading
-        document.getElementById('pedidosGrid').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando pedidos...</div>';
-        
-        // ÚNICO LISTENER para TUDO
-        dbRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            console.log('📦 Dados recebidos do Firebase:', data);
+        // ===== ATUALIZAR ESTATÍSTICAS =====
+        function atualizarEstatisticas() {
+            const stats = { novo: 0, preparando: 0, saiu: 0, entregue: 0, cancelado: 0 };
             
-            if (!data) {
-                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum dado encontrado</p>';
+            todosPedidos.forEach(pedido => {
+                if (ehHoje(pedido.data) && stats.hasOwnProperty(pedido.status)) {
+                    stats[pedido.status]++;
+                }
+            });
+
+            document.getElementById('totalNovos').textContent = stats.novo;
+            document.getElementById('totalPreparando').textContent = stats.preparando;
+            document.getElementById('totalSaiu').textContent = stats.saiu;
+            document.getElementById('totalEntregue').textContent = stats.entregue;
+            document.getElementById('totalCancelado').textContent = stats.cancelado;
+        }
+
+        // ===== FILTRAR PEDIDOS =====
+        function filtrarPedidos(filtro, event = null) {
+            filtroAtual = filtro;
+            
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.classList.remove('ativo');
+            });
+            if (event) event.target.classList.add('ativo');
+
+            let resultado = [];
+            
+            if (filtro === 'todos') {
+                // TODOS os status dos últimos 2 dias
+                resultado = todosPedidos.filter(p => ultimos2Dias(p.data));
+            } 
+            else if (filtro === 'entregue') {
+                // Só entregues dos últimos 2 dias
+                resultado = todosPedidos.filter(p => p.status === 'entregue' && ultimos2Dias(p.data));
+            }
+            else {
+                // Demais filtros: só hoje
+                resultado = todosPedidos.filter(p => p.status === filtro && ehHoje(p.data));
+            }
+            
+            // Ordenar (mais recentes primeiro)
+            resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
+            renderizarPedidos(resultado);
+        }
+
+        // ===== RENDERIZAR PEDIDOS =====
+        function renderizarPedidos(pedidos) {
+            const grid = document.getElementById('pedidosGrid');
+            
+            if (pedidos.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido encontrado</p>';
                 return;
             }
+
+            const fragment = document.createDocumentFragment();
+            const template = document.createElement('template');
+
+            pedidos.forEach(pedido => {
+                const cacheKey = `${pedido.id}_${pedido.status}`;
+                
+                if (templateCache.has(cacheKey)) {
+                    fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
+                    return;
+                }
+
+                const statusClass = pedido.status || 'novo';
+                const statusText = {
+                    'novo': '🟢 NOVO',
+                    'preparando': '🟡 PREPARANDO',
+                    'saiu': '🔵 SAIU',
+                    'entregue': '✅ ENTREGUE',
+                    'cancelado': '❌ CANCELADO'
+                }[statusClass] || '🟢 NOVO';
+
+                const dataPedido = new Date(pedido.data);
+                const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                const html = `
+                    <div class="pedido-card ${statusClass}">
+                        <div class="pedido-header">
+                            <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
+                            <span class="pedido-status status-${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="pedido-cliente">
+                            <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
+                        </div>
+                        
+                        <div class="pedido-info">
+                            <div><i class="far fa-clock"></i> ${horaFormatada}</div>
+                            <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
+                            <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
+                            <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
+                            ${pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro] ? 
+                                `<div><i class="fas fa-map-marker-alt"></i> ${todosBairros[pedido.cliente.bairro].nome}</div>` : ''}
+                        </div>
+                        
+                        ${pedido.frete ? `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>` : ''}
+                        
+                        <div class="pedido-total">
+                            R$ ${(pedido.total || 0).toFixed(2)}
+                        </div>
+
+                        <div class="pedido-acoes">
+                            ${statusClass !== 'entregue' && statusClass !== 'cancelado' ? `
+                                ${statusClass === 'novo' ? `
+                                    <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
+                                        <i class="fas fa-utensils"></i> PREPARAR
+                                    </button>
+                                ` : ''}
+                                
+                                ${statusClass === 'preparando' ? `
+                                    <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
+                                        <i class="fas fa-motorcycle"></i> SAIU
+                                    </button>
+                                ` : ''}
+                                
+                                ${statusClass === 'saiu' ? `
+                                    <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
+                                        <i class="fas fa-check"></i> ENTREGUE
+                                    </button>
+                                ` : ''}
+                                
+                                <button class="btn-acao btn-cancelar" onclick="atualizarStatus('${pedido.id}', 'cancelado')">
+                                    <i class="fas fa-times"></i> CANCELAR
+                                </button>
+                            ` : ''}
+                            
+                            <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </button>
+                            
+                            <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
+                                <i class="fas fa-print"></i> IMPRIMIR
+                            </button>
+                            
+                            <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
+                                <i class="fas fa-eye"></i> DETALHES
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                template.innerHTML = html.trim();
+                const card = template.content.firstChild;
+                
+                templateCache.set(cacheKey, card.cloneNode(true));
+                fragment.appendChild(card);
+            });
+
+            grid.innerHTML = '';
+            grid.appendChild(fragment);
+        }
+
+        // ===== ATUALIZAR STATUS =====
+        function atualizarStatus(pedidoId, novoStatus) {
+            dbRef.child('pedidos/' + pedidoId + '/status').set(novoStatus)
+                .then(() => console.log('Status atualizado'))
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao atualizar status');
+                });
+        }
+
+        // ===== ENVIAR WHATSAPP =====
+        function enviarWhatsApp(pedidoId) {
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+
+            let telefone = pedido.cliente?.telefone || '';
+            telefone = telefone.replace(/\D/g, '');
             
-            // 1️⃣ NOME DO RESTAURANTE
-            if (data.info?.nome) {
-                document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + data.info.nome;
+            if (!telefone) {
+                telefone = prompt('Digite o telefone do cliente (com DDD):', '55');
+                if (!telefone) return;
             }
+
+            if (!telefone.startsWith('55')) {
+                telefone = '55' + telefone;
+            }
+
+            const statusMsg = {
+                'novo': 'foi confirmado',
+                'preparando': 'está sendo preparado',
+                'saiu': 'saiu para entrega',
+                'entregue': 'foi entregue',
+                'cancelado': 'foi cancelado'
+            }[pedido.status] || 'está em processamento';
+
+            let mensagem = `🍽️ *40 GRAUS*\n\nOlá *${pedido.cliente?.nome}*, tudo bem?\n\nSeu pedido *#${pedido.numero || pedido.id.slice(-4)}* ${statusMsg}.`;
             
-            // 2️⃣ PEDIDOS
-            if (data.pedidos) {
-                // Converter objeto em array
-                todosPedidos = Object.entries(data.pedidos).map(([id, pedido]) => ({
-                    id: id,
-                    ...pedido
-                }));
-                
-                console.log(`📋 ${todosPedidos.length} pedidos carregados`);
-                
-                // Atualizar tudo
-                atualizarEstatisticas();
-                filtrarPedidos(filtroAtual);
-                templateCache.clear();
+            if (pedido.frete) {
+                mensagem += `\n\n💰 *Subtotal:* R$ ${(pedido.total - pedido.frete).toFixed(2)}`;
+                mensagem += `\n🚚 *Frete:* R$ ${pedido.frete.toFixed(2)}`;
+                mensagem += `\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}`;
             } else {
-                todosPedidos = [];
-                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum pedido encontrado</p>';
+                mensagem += `\n\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}`;
             }
             
-        }, (error) => {
-            console.error('❌ Erro no Firebase:', error);
-            document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; color:#800020;">Erro ao carregar dados. Verifique o Firebase.</p>';
-        });
-    }
+            mensagem += `\n\nAgradecemos pela preferência! 🙏`;
 
-    // ===== ATUALIZAR ESTATÍSTICAS =====
-    function atualizarEstatisticas() {
-        const stats = { novo: 0, preparando: 0, saiu: 0, entregue: 0 };
-        
-        for (let i = 0; i < todosPedidos.length; i++) {
-            const pedido = todosPedidos[i];
-            if (ehHoje(pedido.data) && stats.hasOwnProperty(pedido.status)) {
-                stats[pedido.status]++;
-            }
+            window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
         }
 
-        document.getElementById('totalNovos').textContent = stats.novo;
-        document.getElementById('totalPreparando').textContent = stats.preparando;
-        document.getElementById('totalSaiu').textContent = stats.saiu;
-        document.getElementById('totalEntregue').textContent = stats.entregue;
-    }
+        // ===== IMPRIMIR PEDIDO =====
+        function imprimirPedido(pedidoId) {
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
 
-    // ===== FILTRAR PEDIDOS =====
-    function filtrarPedidos(filtro) {
-        filtroAtual = filtro;
-        
-        document.querySelectorAll('.filtro-btn').forEach(btn => {
-            btn.classList.remove('ativo');
-        });
-        if (event) event.target.classList.add('ativo');
-
-        // Filtrar por hoje
-        const pedidosHoje = todosPedidos.filter(p => ehHoje(p.data));
-        
-        // Filtrar por status
-        let resultado = pedidosHoje;
-        if (filtro !== 'todos') {
-            resultado = pedidosHoje.filter(p => p.status === filtro);
-        }
-        
-        // Ordenar (mais recentes primeiro)
-        resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
-        
-        renderizarPedidos(resultado);
-    }
-
-    // ===== RENDERIZAR PEDIDOS =====
-    function renderizarPedidos(pedidos) {
-        const grid = document.getElementById('pedidosGrid');
-        
-        if (pedidos.length === 0) {
-            grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido hoje</p>';
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        const template = document.createElement('template');
-
-        for (let i = 0; i < pedidos.length; i++) {
-            const pedido = pedidos[i];
-            const cacheKey = `${pedido.id}_${pedido.status}`;
+            const janelaImpressao = window.open('', '_blank');
             
-            if (templateCache.has(cacheKey)) {
-                fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
-                continue;
-            }
-
-            const statusClass = pedido.status || 'novo';
-            const statusText = {
-                'novo': '🟢 NOVO',
-                'preparando': '🟡 PREPARANDO',
-                'saiu': '🔵 SAIU',
-                'entregue': '✅ ENTREGUE'
-            }[statusClass] || '🟢 NOVO';
-
-            const dataPedido = new Date(pedido.data);
-            const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-            const html = `
-                <div class="pedido-card ${statusClass}">
-                    <div class="pedido-header">
-                        <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
-                        <span class="pedido-status status-${statusClass}">${statusText}</span>
+            janelaImpressao.document.write(`
+                <html>
+                <head>
+                    <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; margin: 0 auto; padding: 5px; }
+                        .header { text-align: center; margin-bottom: 10px; }
+                        .header h1 { font-size: 16px; margin: 0; color: #800020; }
+                        .linha { border-top: 1px dashed #000; margin: 5px 0; }
+                        .item { margin: 5px 0; }
+                        .subtotal { text-align: right; font-weight: bold; margin: 5px 0; border-top: 1px dotted #000; padding-top: 3px; }
+                        .total { font-size: 14px; font-weight: bold; text-align: right; border-top: 2px solid #000; padding-top: 5px; margin-top: 5px; }
+                        .footer { text-align: center; margin-top: 10px; font-size: 10px; }
+                        table { width: 100%; }
+                        td { padding: 2px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>40 GRAUS</h1>
+                        <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
+                        <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
                     </div>
                     
-                    <div class="pedido-cliente">
-                        <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
-                    </div>
+                    <div class="linha"></div>
                     
-                    <div class="pedido-info">
-                        <div><i class="far fa-clock"></i> ${horaFormatada}</div>
-                        <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
-                        <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
-                        <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
-                    </div>
+                    <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
+                    ${pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro] ? 
+                        `<p><strong>Bairro:</strong> ${todosBairros[pedido.cliente.bairro].nome}</p>` : ''}
+                    <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
                     
-                    <div class="pedido-total">
-                        R$ ${(pedido.total || 0).toFixed(2)}
-                    </div>
-
-                    <div class="pedido-acoes">
-                        ${statusClass !== 'entregue' ? `
-                            ${statusClass === 'novo' ? `
-                                <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
-                                    <i class="fas fa-utensils"></i> PREPARAR
-                                </button>
-                            ` : ''}
-                            
-                            ${statusClass === 'preparando' ? `
-                                <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
-                                    <i class="fas fa-motorcycle"></i> SAIU
-                                </button>
-                            ` : ''}
-                            
-                            ${statusClass === 'saiu' ? `
-                                <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
-                                    <i class="fas fa-check"></i> ENTREGUE
-                                </button>
-                            ` : ''}
-                        ` : ''}
-                        
-                        <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
-                        </button>
-                        
-                        <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
-                            <i class="fas fa-print"></i> IMPRIMIR
-                        </button>
-                        
-                        <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
-                            <i class="fas fa-eye"></i> DETALHES
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            template.innerHTML = html.trim();
-            const card = template.content.firstChild;
-            
-            templateCache.set(cacheKey, card.cloneNode(true));
-            fragment.appendChild(card);
-        }
-
-        grid.innerHTML = '';
-        grid.appendChild(fragment);
-    }
-
-    // ===== ATUALIZAR STATUS =====
-    function atualizarStatus(pedidoId, novoStatus) {
-        dbRef.child('pedidos/' + pedidoId + '/status').set(novoStatus)
-            .then(() => console.log('Status atualizado'))
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao atualizar status');
-            });
-    }
-
-    // ===== ENVIAR WHATSAPP =====
-    function enviarWhatsApp(pedidoId) {
-        const pedido = todosPedidos.find(p => p.id === pedidoId);
-        if (!pedido) return;
-
-        let telefone = pedido.cliente?.telefone || '';
-        telefone = telefone.replace(/\D/g, '');
-        
-        if (!telefone) {
-            telefone = prompt('Digite o telefone do cliente (com DDD):', '55');
-            if (!telefone) return;
-        }
-
-        if (!telefone.startsWith('55')) {
-            telefone = '55' + telefone;
-        }
-
-        const statusMsg = {
-            'novo': 'foi confirmado',
-            'preparando': 'está sendo preparado',
-            'saiu': 'saiu para entrega',
-            'entregue': 'foi entregue'
-        }[pedido.status] || 'está em processamento';
-
-        const mensagem = `🍽️ *40 GRAUS*\n\nOlá *${pedido.cliente?.nome}*, tudo bem?\n\nSeu pedido *#${pedido.numero || pedido.id.slice(-4)}* ${statusMsg}.\n\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}\n\nAgradecemos pela preferência! 🙏`;
-
-        window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
-    }
-
-   // ===== IMPRIMIR PEDIDO (PAINEL ADMIN) =====
-// ===== IMPRIMIR CUPOM TÉRMICO =====
-function imprimirPedido(pedidoId) {
-    const pedido = todosPedidos.find(p => p.id === pedidoId);
-    if (!pedido) return;
-
-    const valorPrato = parseFloat(document.getElementById('valorPrato')?.value || 25.90);
-    
-    const janelaImpressao = window.open('', '_blank');
-    
-    janelaImpressao.document.write(`
-        <html>
-        <head>
-            <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
-            <style>
-                body { 
-                    font-family: 'Courier New', monospace; 
-                    font-size: 12px; 
-                    width: 80mm;
-                    margin: 0 auto;
-                    padding: 5px;
-                }
-                .header { text-align: center; margin-bottom: 10px; }
-                .header h1 { font-size: 16px; margin: 0; }
-                .header p { margin: 2px 0; }
-                .linha { border-top: 1px dashed #000; margin: 5px 0; }
-                .item { margin: 5px 0; }
-                .item strong { font-size: 12px; }
-                .valor { text-align: right; }
-                .subtotal { 
-                    text-align: right; 
-                    font-weight: bold; 
-                    margin: 5px 0;
-                    border-top: 1px dotted #000;
-                    padding-top: 3px;
-                }
-                .total { 
-                    font-size: 14px; 
-                    font-weight: bold; 
-                    text-align: right; 
-                    border-top: 2px solid #000;
-                    padding-top: 5px;
-                    margin-top: 5px;
-                }
-                .footer { text-align: center; margin-top: 10px; font-size: 10px; }
-                table { width: 100%; }
-                td { padding: 2px 0; }
-                .qtd { text-align: center; width: 20px; }
-                .preco { text-align: right; width: 60px; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>40 GRAUS</h1>
-                <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
-                <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
-            </div>
-            
-            <div class="linha"></div>
-            
-            <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
-            <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
-            
-            <div class="linha"></div>
-            
-            <h3>ITENS</h3>
-    `);
-
-    let totalGeral = 0;
-
-    pedido.itens?.forEach((item, idx) => {
-        let subtotalItem = valorPrato;
-        
-        janelaImpressao.document.write(`
-            <div class="item">
-                <strong>REFEIÇÃO ${idx + 1}</strong>
-                <table>
-        `);
-        
-        // Carnes
-        if (item.carnes?.length) {
-            janelaImpressao.document.write(`
-                <tr>
-                    <td colspan="2">🥩 ${item.carnes.join(', ')}</td>
-                </tr>
+                    <div class="linha"></div>
+                    
+                    <h3>ITENS</h3>
             `);
-        }
-        
-        // Acompanhamentos
-        if (item.acompanhamentos?.length) {
-            janelaImpressao.document.write(`
-                <tr>
-                    <td colspan="2">🍚 ${item.acompanhamentos.join(', ')}</td>
-                </tr>
-            `);
-            
-            // Sem Arroz
-            if (item.acompanhamentos.includes('Sem Arroz')) {
+
+            let subtotal = 0;
+
+            pedido.itens?.forEach((item, idx) => {
                 janelaImpressao.document.write(`
-                    <tr>
-                        <td>  + Sem Arroz</td>
-                        <td class="preco">R$ ${config.valorSemArroz.toFixed(2)}</td>
-                    </tr>
+                    <div class="item">
+                        <strong>REFEIÇÃO ${idx + 1}</strong>
+                        <table>
                 `);
-                subtotalItem += config.valorSemArroz;
+                
+                if (item.carnes?.length) {
+                    janelaImpressao.document.write(`<tr><td>🥩 ${item.carnes.join(', ')}</td></tr>`);
+                }
+                if (item.acompanhamentos?.length) {
+                    janelaImpressao.document.write(`<tr><td>🍚 ${item.acompanhamentos.join(', ')}</td></tr>`);
+                }
+                if (item.feijoes?.length) {
+                    janelaImpressao.document.write(`<tr><td>🫘 ${item.feijoes.join(', ')}</td></tr>`);
+                }
+                if (item.saladas?.length) {
+                    janelaImpressao.document.write(`<tr><td>🥗 ${item.saladas.join(', ')}</td></tr>`);
+                }
+                if (item.observacao) {
+                    janelaImpressao.document.write(`<tr><td>📝 ${item.observacao}</td></tr>`);
+                }
+                
+                janelaImpressao.document.write(`</table></div>`);
+                subtotal += 25.90; // Valor base do prato
+            });
+
+            if (pedido.frete) {
+                janelaImpressao.document.write(`
+                    <div class="item">
+                        <table>
+                            <tr>
+                                <td>🚚 Frete</td>
+                                <td class="preco">R$ ${pedido.frete.toFixed(2)}</td>
+                            </tr>
+                        </table>
+                    </div>
+                `);
+            }
+
+            janelaImpressao.document.write(`
+                    <div class="linha"></div>
+                    <div class="total">
+                        TOTAL: R$ ${pedido.total?.toFixed(2)}
+                    </div>
+                    
+                    <div class="footer">
+                        Obrigado pela preferência!
+                    </div>
+                    
+                    <script>
+                        window.onload = function() { 
+                            window.print(); 
+                            setTimeout(() => window.close(), 1000); 
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            
+            janelaImpressao.document.close();
+        }
+
+        // ===== VER DETALHES =====
+        function verDetalhes(pedidoId) {
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+
+            let html = '<table>';
+            html += `<tr><td>Número:</td><td><strong>#${pedido.numero || pedido.id.slice(-4)}</strong></td></tr>`;
+            html += `<tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>`;
+            html += `<tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>`;
+            
+            if (pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro]) {
+                html += `<tr><td>Bairro:</td><td>${todosBairros[pedido.cliente.bairro].nome} (Frete: R$ ${todosBairros[pedido.cliente.bairro].frete.toFixed(2)})</td></tr>`;
+            }
+            
+            if (pedido.cliente?.endereco) {
+                html += `<tr><td>Endereço:</td><td>${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</td></tr>`;
+            }
+            
+            html += `<tr><td>Pagamento:</td><td>${pedido.pagamento?.toUpperCase() || 'N/A'}</td></tr>`;
+            html += `<tr><td>Entrega:</td><td>${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</td></tr>`;
+            
+            if (pedido.frete) {
+                html += `<tr><td>Frete:</td><td>R$ ${pedido.frete.toFixed(2)}</td></tr>`;
+            }
+            
+            html += '</table><h3 style="color:#800020;">Itens:</h3><table>';
+            
+            pedido.itens?.forEach((item, idx) => {
+                html += `<tr><td colspan="2"><strong>Refeição ${idx + 1}</strong></td></tr>`;
+                if (item.carnes?.length) html += `<tr><td>Carnes:</td><td>${item.carnes.join(', ')}</td></tr>`;
+                if (item.acompanhamentos?.length) html += `<tr><td>Acompanhamentos:</td><td>${item.acompanhamentos.join(', ')}</td></tr>`;
+                if (item.feijoes?.length) html += `<tr><td>Feijões:</td><td>${item.feijoes.join(', ')}</td></tr>`;
+                if (item.saladas?.length) html += `<tr><td>Saladas:</td><td>${item.saladas.join(', ')}</td></tr>`;
+                if (item.observacao) html += `<tr><td>Obs:</td><td>${item.observacao}</td></tr>`;
+            });
+            
+            html += `<tr><td colspan="2" style="border-top:2px solid #800020;"><strong>Total: R$ ${pedido.total?.toFixed(2)}</strong></td></tr></table>`;
+
+            document.getElementById('detalhesConteudo').innerHTML = html;
+            document.getElementById('modalDetalhes').style.display = 'flex';
+        }
+
+        // ===== FUNÇÕES DE MODAL =====
+        function abrirModalLogin() {
+            if (adminLogado) {
+                abrirModalBairros();
+            } else {
+                document.getElementById('modalLogin').style.display = 'flex';
+                document.getElementById('senhaAdmin').focus();
             }
         }
-        
-        // Feijões
-        if (item.feijoes?.length) {
-            janelaImpressao.document.write(`
-                <tr>
-                    <td colspan="2">🫘 ${item.feijoes.join(', ')}</td>
-                </tr>
-            `);
+
+        function abrirModalBairros() {
+            carregarBairros();
+            document.getElementById('modalBairros').style.display = 'flex';
         }
-        
-        // Saladas
-        if (item.saladas?.length) {
-            janelaImpressao.document.write(`
-                <tr>
-                    <td colspan="2">🥗 ${item.saladas.join(', ')}</td>
-                </tr>
-            `);
+
+        function fecharModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
-        
-        // Guarnições
-        if (item.guarnicoes?.length) {
-            janelaImpressao.document.write(`
-                <tr>
-                    <td colspan="2">🍟 ${item.guarnicoes.join(', ')}</td>
-                </tr>
-            `);
-        }
-        
-        // Bebidas
-        if (item.bebidas?.length) {
-            item.bebidas.forEach(b => {
-                janelaImpressao.document.write(`
-                    <tr>
-                        <td>🥤 ${b.nome}</td>
-                        <td class="preco">R$ ${b.valor?.toFixed(2)}</td>
-                    </tr>
-                `);
-                subtotalItem += b.valor || 0;
+
+        // ===== VERIFICAR LOGIN =====
+        function verificarLogin() {
+            const senhaDigitada = document.getElementById('senhaAdmin').value;
+            
+            dbRef.child('info/senhaAdmin').once('value', (snapshot) => {
+                const senhaCorreta = snapshot.val();
+                
+                if (senhaDigitada === senhaCorreta) {
+                    adminLogado = true;
+                    document.getElementById('adminBtn').classList.add('ativo');
+                    fecharModal('modalLogin');
+                    abrirModalBairros();
+                } else {
+                    alert('Senha incorreta!');
+                }
             });
         }
-        
-        // Acréscimos
-        if (item.acrescimos?.length) {
-            item.acrescimos.forEach(a => {
-                janelaImpressao.document.write(`
-                    <tr>
-                        <td>➕ ${a.nome}</td>
-                        <td class="preco">R$ ${a.valor?.toFixed(2)}</td>
-                    </tr>
-                `);
-                subtotalItem += a.valor || 0;
+
+        // ===== CARREGAR BAIRROS =====
+        function carregarBairros() {
+            const lista = document.getElementById('bairrosLista');
+            
+            if (Object.keys(todosBairros).length === 0) {
+                lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhum bairro cadastrado</p>';
+                return;
+            }
+
+            let html = '';
+            Object.entries(todosBairros).forEach(([key, bairro]) => {
+                html += `
+                    <div class="bairro-item">
+                        <div class="bairro-info">
+                            <div class="bairro-nome">${bairro.nome}</div>
+                            <div class="bairro-frete">Frete: R$ ${bairro.frete.toFixed(2)}</div>
+                        </div>
+                        <div class="bairro-acoes">
+                            <button class="btn-bairro editar" onclick="editarBairro('${key}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-bairro excluir" onclick="excluirBairro('${key}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            lista.innerHTML = html;
+        }
+
+        // ===== ADICIONAR BAIRRO =====
+        function adicionarBairro() {
+            const nome = document.getElementById('novoBairroNome').value.trim();
+            const frete = parseFloat(document.getElementById('novoBairroFrete').value);
+            
+            if (!nome || isNaN(frete) || frete < 0) {
+                alert('Preencha todos os campos corretamente!');
+                return;
+            }
+
+            const key = nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            
+            dbRef.child('bairros/' + key).set({
+                nome: nome,
+                frete: frete
+            }).then(() => {
+                document.getElementById('novoBairroNome').value = '';
+                document.getElementById('novoBairroFrete').value = '';
+                carregarBairros();
             });
         }
-        
-        // Observação
-        if (item.observacao) {
-            janelaImpressao.document.write(`
-                <tr>
-                    <td colspan="2">📝 ${item.observacao}</td>
-                </tr>
-            `);
-        }
-        
-        // 👉 SUBTOTAL DA REFEIÇÃO (AGORA APARECE!)
-        janelaImpressao.document.write(`
-                </table>
-                <div class="subtotal">
-                    SUBTOTAL: R$ ${subtotalItem.toFixed(2)}
-                </div>
-            </div>
-        `);
-        
-        totalGeral += subtotalItem;
-    });
 
-    // Taxa de entrega
-    if (pedido.tipoEntrega === 'entrega') {
-        const taxaEntrega = 7.00;
-        totalGeral += taxaEntrega;
-        janelaImpressao.document.write(`
-            <div class="item">
-                <table>
-                    <tr>
-                        <td>🛵 Taxa entrega</td>
-                        <td class="preco">R$ ${taxaEntrega.toFixed(2)}</td>
-                    </tr>
-                </table>
-            </div>
-        `);
-    }
-
-    // TOTAL GERAL
-    janelaImpressao.document.write(`
-            <div class="linha"></div>
-            <div class="total">
-                TOTAL: R$ ${totalGeral.toFixed(2)}
-            </div>
+        // ===== EDITAR BAIRRO =====
+        function editarBairro(key) {
+            const bairro = todosBairros[key];
+            const novoNome = prompt('Novo nome do bairro:', bairro.nome);
+            if (!novoNome) return;
             
-            <div class="footer">
-                Obrigado pela preferência!
-            </div>
-            
-            <script>
-                window.onload = function() { 
-                    window.print(); 
-                    setTimeout(() => window.close(), 1000); 
-                };
-            <\/script>
-        </body>
-        </html>
-    `);
-    
-    janelaImpressao.document.close();
-}
-    // ===== VER DETALHES =====
-    function verDetalhes(pedidoId) {
-        const pedido = todosPedidos.find(p => p.id === pedidoId);
-        if (!pedido) return;
+            const novoFrete = parseFloat(prompt('Novo valor do frete:', bairro.frete));
+            if (isNaN(novoFrete) || novoFrete < 0) return;
 
-        let html = '<table>';
-        html += `<tr><td>Número:</td><td><strong>#${pedido.numero || pedido.id.slice(-4)}</strong></td></tr>`;
-        html += `<tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>`;
-        html += `<tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>`;
-        
-        if (pedido.cliente?.endereco) {
-            html += `<tr><td>Endereço:</td><td>${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</td></tr>`;
+            dbRef.child('bairros/' + key).update({
+                nome: novoNome,
+                frete: novoFrete
+            });
         }
-        
-        html += `<tr><td>Pagamento:</td><td>${pedido.pagamento?.toUpperCase() || 'N/A'}</td></tr>`;
-        html += `<tr><td>Entrega:</td><td>${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</td></tr>`;
-        html += '</table><h3 style="color:#800020;">Itens:</h3><table>';
-        
-        pedido.itens?.forEach((item, idx) => {
-            html += `<tr><td colspan="2"><strong>Refeição ${idx + 1}</strong></td></tr>`;
-            html += `<tr><td>Carnes:</td><td>${item.carnes?.join(', ') || 'Nenhuma'}</td></tr>`;
-            html += `<tr><td>Acompanhamentos:</td><td>${item.acompanhamentos?.join(', ') || 'Nenhum'}</td></tr>`;
-            if (item.feijoes?.length) html += `<tr><td>Feijões:</td><td>${item.feijoes.join(', ')}</td></tr>`;
-            if (item.saladas?.length) html += `<tr><td>Saladas:</td><td>${item.saladas.join(', ')}</td></tr>`;
-            if (item.guarnicoes?.length) html += `<tr><td>Guarnições:</td><td>${item.guarnicoes.join(', ')}</td></tr>`;
-            if (item.observacao) html += `<tr><td>Obs:</td><td>${item.observacao}</td></tr>`;
-        });
-        
-        html += `<tr><td colspan="2" style="border-top:2px solid #800020;"><strong>Total: R$ ${pedido.total?.toFixed(2)}</strong></td></tr></table>`;
 
-        document.getElementById('detalhesConteudo').innerHTML = html;
-        document.getElementById('modalDetalhes').style.display = 'flex';
-    }
+        // ===== EXCLUIR BAIRRO =====
+        function excluirBairro(key) {
+            if (confirm('Tem certeza que deseja excluir este bairro?')) {
+                dbRef.child('bairros/' + key).remove();
+            }
+        }
 
-    // ===== FECHAR MODAL =====
-    function fecharModal() {
-        document.getElementById('modalDetalhes').style.display = 'none';
-    }
-
-    // ===== INICIAR =====
-    window.onload = function() {
-        document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-        
-        // INICIAR LISTENER ÚNICO
-        iniciarListenerUnico();
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') fecharModal();
-        });
-        
-        document.getElementById('modalDetalhes').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('modalDetalhes')) fecharModal();
-        });
-    };
-</script>
+        // ===== INICIAR =====
+        window.onload = function() {
+            document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            
+            iniciarListenerUnico();
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    fecharModal('modalLogin');
+                    fecharModal('modalBairros');
+                    fecharModal('modalDetalhes');
+                }
+            });
+            
+            document.getElementById('modalLogin').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('modalLogin')) fecharModal('modalLogin');
+            });
+            
+            document.getElementById('modalBairros').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('modalBairros')) fecharModal('modalBairros');
+            });
+            
+            document.getElementById('modalDetalhes').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('modalDetalhes')) fecharModal('modalDetalhes');
+            });
+        };
+    </script>
 </body>
 </html>
