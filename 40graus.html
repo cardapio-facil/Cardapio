@@ -2072,30 +2072,57 @@ function enviarWhatsApp() {
     const numeroPedido = Math.floor(Math.random() * 10000);
     console.log('4. Número do pedido:', numeroPedido);
 
+   function enviarWhatsApp() {
+    console.log('🚀 INICIANDO ENVIO DO PEDIDO');
+    
+    if (pedidosAtuais.length === 0) {
+        alert('Adicione pelo menos uma Refeição!');
+        return;
+    }
+
+    const nome = document.getElementById('nomeCliente').value;
+    if (!nome) {
+        alert('Digite seu nome!');
+        document.getElementById('nomeCliente').focus();
+        return;
+    }
+
+    // ✅ VALIDAÇÃO DO TELEFONE
+    const telefone = document.getElementById('telefone').value;
+    if (!telefone || telefone.length < 10) {
+        alert('Digite um telefone válido para contato!');
+        document.getElementById('telefone').focus();
+        return;
+    }
+
+    // Validar campos para entrega
+    if (document.getElementById('tipoEntrega').value === 'entrega') {
+        if (!document.getElementById('bairro').value) {
+            alert('Preencha o bairro para entrega!');
+            document.getElementById('bairro').focus();
+            return;
+        }
+        if (!document.getElementById('rua').value) {
+            alert('Preencha a rua para entrega!');
+            document.getElementById('rua').focus();
+            return;
+        }
+        if (!document.getElementById('numero').value) {
+            alert('Preencha o número para entrega!');
+            document.getElementById('numero').focus();
+            return;
+        }
+    }
+
+    // Gera número aleatório para o pedido
+    const numeroPedido = Math.floor(Math.random() * 10000);
+    
     // Enviar WhatsApp
     const mensagem = gerarMensagemWhatsApp();
-    const linkWhatsApp = `https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`;
-    console.log('5. Link WhatsApp:', linkWhatsApp);
-    window.open(linkWhatsApp, '_blank');
+    window.open(`https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`, '_blank');
 
-    // Prepara dados para salvar no Firebase
+    // Salvar no Firebase
     const pedidoId = 'pedido_' + Date.now();
-    console.log('6. ID do pedido:', pedidoId);
-    
-    // Calcula o total
-    let totalPratos = 0;
-    const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
-    
-    pedidosAtuais.forEach(prato => {
-        let subtotal = valorPrato;
-        if (prato.acompanhamentos.includes('Sem Arroz')) subtotal += config.valorSemArroz;
-        prato.bebidas.forEach(b => subtotal += b.valor);
-        prato.acrescimos.forEach(a => subtotal += a.valor);
-        totalPratos += subtotal;
-    });
-
-    const taxaEntrega = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
-    const totalFinal = totalPratos + taxaEntrega;
     
     const pedidoData = {
         numero: numeroPedido,
@@ -2103,7 +2130,7 @@ function enviarWhatsApp() {
         dataFormatada: new Date().toLocaleString('pt-BR'),
         cliente: {
             nome: nome,
-            telefone: document.getElementById('telefone').value,
+            telefone: telefone,  // ← Agora com validação
             endereco: {
                 rua: document.getElementById('rua').value,
                 numero: document.getElementById('numero').value,
@@ -2115,42 +2142,21 @@ function enviarWhatsApp() {
             }
         },
         itens: pedidosAtuais,
-        total: totalFinal,
-        taxaEntrega: taxaEntrega,
+        total: calcularTotal(),
+        taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0,
         pagamento: document.getElementById('pagamento').value,
         troco: document.getElementById('trocoValor').value || null,
         tipoEntrega: document.getElementById('tipoEntrega').value,
         status: 'novo'
     };
-    
-    console.log('7. Dados do pedido:', pedidoData);
-    console.log('8. Caminho no Firebase:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
 
-    // Salvar no Firebase
     dbRef.child('pedidos/' + pedidoId).set(pedidoData)
         .then(() => {
-            console.log('✅ SUCESSO! Pedido salvo no Firebase!');
-            alert('Pedido enviado com sucesso!');
-            
-            // Limpar pedidos após sucesso
+            alert('Pedido enviado!');
             pedidosAtuais = [];
             atualizarPainelPedidos();
-            
-            // Limpar formulário (opcional)
-            document.getElementById('nomeCliente').value = '';
-            document.getElementById('telefone').value = '';
-            document.getElementById('cep').value = '';
-            document.getElementById('rua').value = '';
-            document.getElementById('numero').value = '';
-            document.getElementById('bairro').value = '';
-            document.getElementById('cidade').value = '';
-            document.getElementById('complemento').value = '';
-            document.getElementById('referencia').value = '';
         })
-        .catch(error => {
-            console.error('❌ ERRO ao salvar no Firebase:', error);
-            alert('Erro ao salvar pedido: ' + error.message);
-        });
+        .catch(error => console.error('Erro:', error));
 }
         // ===== FUNÇÕES AUXILIARES =====
         function toggleTroco() {
