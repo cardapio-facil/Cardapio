@@ -1557,7 +1557,7 @@ function renderizarCardapio() {
             } else {
                 document.getElementById('freteValor').value = 'Bairro não atendido';
                 document.getElementById('freteValor').dataset.valor = '0';
-                alert('Este bairro não é atendido para entrega!');
+                alert('Verifique a informação do CEP ou Este bairro não esta disponivel  para entrega!');
             }
             
             atualizarTotal();
@@ -1793,28 +1793,57 @@ function renderizarCardapio() {
             return totalPratos + taxa;
         }
 
-        // ===== ENDEREÇOS =====
+        // ===== ENDEREÇOS local storage=====
         function carregarEnderecosLocalStorage() {
-            const enderecosSalvos = localStorage.getItem('enderecos_' + RESTAURANTE_ID);
-            if (enderecosSalvos) {
-                try {
-                    enderecosClientes = JSON.parse(enderecosSalvos) || {};
-                } catch (e) {}
-            }
+    const enderecosSalvos = localStorage.getItem('enderecos_' + RESTAURANTE_ID);
+    if (enderecosSalvos) {
+        try {
+            enderecosClientes = JSON.parse(enderecosSalvos) || {};
+        } catch (e) {}
+    }
 
-            const ultimoEndereco = localStorage.getItem('ultimoEndereco_' + RESTAURANTE_ID);
-            if (ultimoEndereco) {
-                try {
-                    ultimoEnderecoSelecionado = JSON.parse(ultimoEndereco);
-                } catch (e) {}
-            }
+    // Carregar último telefone
+    const ultimoTelefone = localStorage.getItem('ultimoTelefone_' + RESTAURANTE_ID);
+    if (ultimoTelefone) {
+        document.getElementById('telefone').value = ultimoTelefone;
+    }
 
+    const ultimoEndereco = localStorage.getItem('ultimoEndereco_' + RESTAURANTE_ID);
+    if (ultimoEndereco) {
+        try {
+            ultimoEnderecoSelecionado = JSON.parse(ultimoEndereco);
+            
+            // Se tiver nome salvo, preencher os campos com o último endereço
             const nomeSalvo = localStorage.getItem('ultimoNomeCliente_' + RESTAURANTE_ID);
             if (nomeSalvo) {
                 document.getElementById('nomeCliente').value = nomeSalvo;
-                buscarEnderecosCliente();
+                
+                // Só preenche se o nome corresponder
+                if (enderecosClientes[nomeSalvo]) {
+                    setTimeout(() => {
+                        document.getElementById('telefone').value = ultimoEnderecoSelecionado.telefone || ultimoTelefone || '';
+                        document.getElementById('cep').value = ultimoEnderecoSelecionado.cep || '';
+                        document.getElementById('cidade').value = ultimoEnderecoSelecionado.cidade || '';
+                        document.getElementById('rua').value = ultimoEnderecoSelecionado.rua || '';
+                        document.getElementById('numero').value = ultimoEnderecoSelecionado.numero || '';
+                        document.getElementById('complemento').value = ultimoEnderecoSelecionado.complemento || '';
+                        document.getElementById('bairro').value = ultimoEnderecoSelecionado.bairro || '';
+                        document.getElementById('referencia').value = ultimoEnderecoSelecionado.referencia || '';
+                        
+                        if (CONFIG.TIPO_FRETE === 'bairro' && ultimoEnderecoSelecionado.bairro) {
+                            buscarFretePorBairro(ultimoEnderecoSelecionado.bairro);
+                        }
+                    }, 500);
+                }
             }
+        } catch (e) {}
+    } else {
+        const nomeSalvo = localStorage.getItem('ultimoNomeCliente_' + RESTAURANTE_ID);
+        if (nomeSalvo) {
+            document.getElementById('nomeCliente').value = nomeSalvo;
         }
+    }
+}
 
         function salvarEnderecos() {
             localStorage.setItem('enderecos_' + RESTAURANTE_ID, JSON.stringify(enderecosClientes));
