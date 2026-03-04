@@ -9,13 +9,13 @@
     <style>
         /* ===== CONFIGURAÇÕES DE CORES (VOCÊ MUDA AQUI) ===== */
         :root {
-            --cor-primaria: #800020;        /* Cor vinho principal */
-            --cor-secundaria: #a00028;       /* Tom mais claro */
-            --fundo-principal: #cfcccc;       /* Fundo branco */
-            --fundo-secundario: #c5c5c5;      /* Cinza claro */
-            --texto-principal: #333333;        /* Texto escuro */
-            --texto-secundario: #666666;       /* Texto mais claro */
-            --borda: #dddddd;                   /* Cor das bordas */
+            --cor-primaria: #f0f0f0;        /* Cor vinho principal */
+            --cor-secundaria: #f0f0f0;      /* Tom mais claro */
+            --fundo-principal: #f0f0f0;       /* Fundo branco */
+            --fundo-secundario: #f0f0f0;      /* Cinza claro */
+            --texto-principal: #f0f0f0;        /* Texto escuro */
+            --texto-secundario: #f0f0f0;       /* Texto mais claro */
+            --borda: #f0f0f0;                   /* Cor das bordas */
         }
 
         * {
@@ -34,7 +34,7 @@
 
         .header {
             backdrop-filter: blur(10px);
-            background: rgba(255,255,255,0.95);
+            background: #f0f0f0;
             border-bottom: 1px solid var(--borda);
             padding: 20px 25px;
             display: flex;
@@ -103,7 +103,7 @@
 
         .login-btn:hover {
             background: var(--cor-primaria);
-            color: white;
+            color: rgb(212, 207, 207);
         }
 
         .login-btn.admin-mode {
@@ -914,20 +914,7 @@
             // Calcular tom mais claro (usando opacidade)
             root.style.setProperty('--cor-secundaria', CONFIG.COR_VINHO + 'dd');
             
-            // Aplicar fundo
-            if (CONFIG.FUNDO_BRANCO) {
-                root.style.setProperty('--fundo-principal', '#ffffff');
-                root.style.setProperty('--fundo-secundario', '#f5f5f5');
-                root.style.setProperty('--texto-principal', CONFIG.TEXTO_ESCURO);
-                root.style.setProperty('--texto-secundario', '#666666');
-                root.style.setProperty('--borda', '#dddddd');
-            } else {
-                root.style.setProperty('--fundo-principal', '#0f0f0f');
-                root.style.setProperty('--fundo-secundario', '#1a1a1a');
-                root.style.setProperty('--texto-principal', CONFIG.TEXTO_CLARO);
-                root.style.setProperty('--texto-secundario', '#cccccc');
-                root.style.setProperty('--borda', 'rgba(128,0,32,0.3)');
-            }
+            
         })();
 
         // ===== CONFIGURAÇÃO DO FIREBASE =====
