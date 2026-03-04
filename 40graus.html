@@ -2036,74 +2036,89 @@ function renderizarCardapio() {
 
        // ===== ENVIAR WHATSAPP E SALVAR NO FIREBASE =====
 function enviarWhatsApp() {
-    console.log('🚀 INICIANDO ENVIO DO PEDIDO');
-    console.log('1. Pedidos atuais:', pedidosAtuais);
-    console.log('2. WhatsApp número:', whatsappNumero);
-    console.log('3. Nome do cliente:', document.getElementById('nomeCliente').value);
-    
+
+    // ===== VALIDAÇÕES =====
+    let erros = [];
+
+    // Verificar se tem pedidos
     if (pedidosAtuais.length === 0) {
-        alert('Adicione pelo menos uma Refeição!');
-        return;
+        erros.push('• Adicione pelo menos uma Refeição');
     }
 
-    const nome = document.getElementById('nomeCliente').value;
+    // Nome
+    const nome = document.getElementById('nomeCliente').value.trim();
     if (!nome) {
-        alert('Digite seu nome!');
+        erros.push('• Nome');
+    }
+
+    // Telefone
+    const telefone = document.getElementById('telefone').value.trim();
+    const telefoneLimpo = telefone.replace(/\D/g, '');
+
+    if (!telefoneLimpo) {
+        erros.push('• Telefone');
+    } else if (telefoneLimpo.length < 10) {
+        erros.push('• Telefone inválido (com DDD)');
+    }
+
+    // Entrega
+    if (document.getElementById('tipoEntrega').value === 'entrega') {
+        if (!document.getElementById('bairro').value.trim()) {
+            erros.push('• Bairro');
+        }
+        if (!document.getElementById('rua').value.trim()) {
+            erros.push('• Rua');
+        }
+        if (!document.getElementById('numero').value.trim()) {
+            erros.push('• Número');
+        }
+    }
+
+    // Se houver erros, mostrar todos e parar
+    if (erros.length > 0) {
+        alert('Preencha os seguintes campos obrigatórios:\n\n' + erros.join('\n'));
         return;
     }
 
-    // Validar campos obrigatórios para entrega
-    if (document.getElementById('tipoEntrega').value === 'entrega') {
-        if (!document.getElementById('bairro').value) {
-            alert('Preencha o bairro para entrega!');
-            return;
-        }
-        if (!document.getElementById('rua').value) {
-            alert('Preencha a rua para entrega!');
-            return;
-        }
-        if (!document.getElementById('numero').value) {
-            alert('Preencha o número para entrega!');
-            return;
-        }
-    }
-
-    // Gera número aleatório para o pedido
+    // ===== GERAR NÚMERO DO PEDIDO =====
     const numeroPedido = Math.floor(Math.random() * 10000);
-    console.log('4. Número do pedido:', numeroPedido);
 
-    // Enviar WhatsApp
+    // ===== ENVIAR WHATSAPP =====
     const mensagem = gerarMensagemWhatsApp();
     const linkWhatsApp = `https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`;
-    console.log('5. Link WhatsApp:', linkWhatsApp);
     window.open(linkWhatsApp, '_blank');
 
-    // Prepara dados para salvar no Firebase
+    // ===== GERAR ID DO PEDIDO =====
     const pedidoId = 'pedido_' + Date.now();
-    console.log('6. ID do pedido:', pedidoId);
-    
-    // Calcula o total
+
+    // ===== CALCULAR TOTAL =====
     let totalPratos = 0;
     const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
-    
+
     pedidosAtuais.forEach(prato => {
         let subtotal = valorPrato;
-        if (prato.acompanhamentos.includes('Sem Arroz')) subtotal += config.valorSemArroz;
+
+        if (prato.acompanhamentos.includes('Sem Arroz')) {
+            subtotal += config.valorSemArroz;
+        }
+
         prato.bebidas.forEach(b => subtotal += b.valor);
         prato.acrescimos.forEach(a => subtotal += a.valor);
+
         totalPratos += subtotal;
     });
 
     const taxaEntrega = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
     const totalFinal = totalPratos + taxaEntrega;
-    
+
+    // ===== MONTAR OBJETO DO PEDIDO =====
     const pedidoData = {
         numero: numeroPedido,
         data: new Date().toISOString(),
         dataFormatada: new Date().toLocaleString('pt-BR'),
         cliente: {
             nome: nome,
-            telefone: document.getElementById('telefone').value,
+            telefone: telefoneLimpo,
             endereco: {
                 rua: document.getElementById('rua').value,
                 numero: document.getElementById('numero').value,
@@ -2122,21 +2137,18 @@ function enviarWhatsApp() {
         tipoEntrega: document.getElementById('tipoEntrega').value,
         status: 'novo'
     };
-    
-    console.log('7. Dados do pedido:', pedidoData);
-    console.log('8. Caminho no Firebase:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
 
-    // Salvar no Firebase
+    // ===== SALVAR NO FIREBASE =====
     dbRef.child('pedidos/' + pedidoId).set(pedidoData)
         .then(() => {
-            console.log('✅ SUCESSO! Pedido salvo no Firebase!');
+
             alert('Pedido enviado com sucesso!');
-            
-            // Limpar pedidos após sucesso
+
+            // Limpar pedidos
             pedidosAtuais = [];
             atualizarPainelPedidos();
-            
-            // Limpar formulário (opcional)
+
+            // Limpar formulário
             document.getElementById('nomeCliente').value = '';
             document.getElementById('telefone').value = '';
             document.getElementById('cep').value = '';
@@ -2148,7 +2160,6 @@ function enviarWhatsApp() {
             document.getElementById('referencia').value = '';
         })
         .catch(error => {
-            console.error('❌ ERRO ao salvar no Firebase:', error);
             alert('Erro ao salvar pedido: ' + error.message);
         });
 }
