@@ -2034,45 +2034,7 @@ function renderizarCardapio() {
             return mensagem;
         }
 
-       // ===== ENVIAR WHATSAPP E SALVAR NO FIREBASE =====
-function enviarWhatsApp() {
-    console.log('🚀 INICIANDO ENVIO DO PEDIDO');
-    console.log('1. Pedidos atuais:', pedidosAtuais);
-    console.log('2. WhatsApp número:', whatsappNumero);
-    console.log('3. Nome do cliente:', document.getElementById('nomeCliente').value);
-    
-    if (pedidosAtuais.length === 0) {
-        alert('Adicione pelo menos uma Refeição!');
-        return;
-    }
-
-    const nome = document.getElementById('nomeCliente').value;
-    if (!nome) {
-        alert('Digite seu nome!');
-        return;
-    }
-
-    // Validar campos obrigatórios para entrega
-    if (document.getElementById('tipoEntrega').value === 'entrega') {
-        if (!document.getElementById('bairro').value) {
-            alert('Preencha o bairro para entrega!');
-            return;
-        }
-        if (!document.getElementById('rua').value) {
-            alert('Preencha a rua para entrega!');
-            return;
-        }
-        if (!document.getElementById('numero').value) {
-            alert('Preencha o número para entrega!');
-            return;
-        }
-    }
-
-    // Gera número aleatório para o pedido
-    const numeroPedido = Math.floor(Math.random() * 10000);
-    console.log('4. Número do pedido:', numeroPedido);
-
-   function enviarWhatsApp() {
+       function enviarWhatsApp() {
     console.log('🚀 INICIANDO ENVIO DO PEDIDO');
     
     if (pedidosAtuais.length === 0) {
