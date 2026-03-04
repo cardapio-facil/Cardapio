@@ -2,11 +2,22 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Painel - Restaurante 40 graus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>40 graus - Faça seu Pedido</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ===== CONFIGURAÇÕES DE CORES (VOCÊ MUDA AQUI) ===== */
+        :root {
+            --cor-primaria: #800020;        /* Cor vinho principal */
+            --cor-secundaria: #a00028;       /* Tom mais claro */
+            --fundo-principal: #cfcccc;       /* Fundo branco */
+            --fundo-secundario: #c5c5c5;      /* Cinza claro */
+            --texto-principal: #333333;        /* Texto escuro */
+            --texto-secundario: #666666;       /* Texto mais claro */
+            --borda: #dddddd;                   /* Cor das bordas */
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -15,224 +26,96 @@
         }
 
         body {
-            background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-            color: #fff;
+            background: var(--fundo-principal);
+            color: var(--texto-principal);
             min-height: 100vh;
-            padding: 20px;
+            transition: all 0.3s ease;
         }
 
         .header {
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95);
+            border-bottom: 1px solid var(--borda);
+            padding: 20px 25px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            justify-content: space-between;
             flex-wrap: wrap;
             gap: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-container {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--cor-primaria);
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .header h1 {
-            color: #800020;
             font-size: 2rem;
-        }
-
-        .status-info {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .status-box {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #800020;
-            border-radius: 12px;
-            padding: 15px 25px;
-            text-align: center;
-        }
-
-        .status-box.novos { border-color: #4CAF50; }
-        .status-box.preparando { border-color: #FFC107; }
-        .status-box.saiu { border-color: #2196F3; }
-        .status-box.entregue { border-color: #9C27B0; }
-        .status-box.cancelado { border-color: #dc3545; }
-
-        .status-box .numero {
-            font-size: 2rem;
+            color: var(--cor-primaria);
             font-weight: 700;
-            color: #800020;
         }
 
-        .admin-btn {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid #800020;
-            color: #fff;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s;
+        .header-info {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .admin-btn.ativo {
-            background: #800020;
-            color: #fff;
-            border-color: #fff;
-        }
-
-        .admin-btn:hover {
-            transform: rotate(90deg);
-            background: #800020;
-        }
-
-        .filtros {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
-        .filtro-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #800020;
-            color: #fff;
-            padding: 10px 20px;
+        .data-menu {
+            background: rgba(128,0,32,0.05);
+            border: 1px solid var(--cor-primaria);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: var(--cor-primaria);
+        }
+
+        .login-btn {
+            background: transparent;
+            border: 1px solid var(--cor-primaria);
+            color: var(--cor-primaria);
+            padding: 10px 25px;
             border-radius: 30px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-
-        .filtro-btn.ativo {
-            background: #800020;
-            color: #fff;
-        }
-
-        .filtro-btn:hover {
-            background: #800020;
-            transform: translateY(-2px);
-        }
-
-        .pedidos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-        }
-
-        .pedido-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid #800020;
-            border-radius: 15px;
-            padding: 20px;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .pedido-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(128,0,32,0.3);
-        }
-
-        .pedido-card.novo { border-left: 5px solid #4CAF50; }
-        .pedido-card.preparando { border-left: 5px solid #FFC107; }
-        .pedido-card.saiu { border-left: 5px solid #2196F3; }
-        .pedido-card.entregue { border-left: 5px solid #9C27B0; opacity: 0.8; }
-        .pedido-card.cancelado { border-left: 5px solid #dc3545; opacity: 0.7; }
-
-        .pedido-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(128,0,32,0.3);
-        }
-
-        .pedido-numero {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #800020;
-        }
-
-        .pedido-status {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-novo { background: #4CAF50; color: #fff; }
-        .status-preparando { background: #FFC107; color: #000; }
-        .status-saiu { background: #2196F3; color: #fff; }
-        .status-entregue { background: #9C27B0; color: #fff; }
-        .status-cancelado { background: #dc3545; color: #fff; }
-
-        .pedido-cliente {
-            font-size: 1.1rem;
-            margin: 10px 0;
-            font-weight: 600;
-        }
-
-        .pedido-info {
-            margin: 10px 0;
-            font-size: 0.9rem;
-            color: #ddd;
-        }
-
-        .pedido-info div {
-            margin: 5px 0;
-        }
-
-        .pedido-total {
-            font-size: 1.3rem;
-            color: #800020;
-            font-weight: 700;
-            margin: 10px 0;
-            text-align: right;
-        }
-
-        .pedido-frete {
-            font-size: 0.9rem;
-            color: #FFC107;
-            text-align: right;
-            margin-top: -5px;
-        }
-
-        .pedido-acoes {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .btn-acao {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            min-width: 70px;
-            font-size: 0.85rem;
         }
 
-        .btn-preparar { background: #FFC107; color: #000; }
-        .btn-saiu { background: #2196F3; color: #fff; }
-        .btn-entregue { background: #4CAF50; color: #fff; }
-        .btn-cancelar { background: #dc3545; color: #fff; }
-        .btn-wpp { background: #25D366; color: #fff; }
-        .btn-imprimir { background: #FF9800; color: #fff; }
-        .btn-detalhes { background: #9C27B0; color: #fff; }
+        .login-btn:hover {
+            background: var(--cor-primaria);
+            color: white;
+        }
 
-        .btn-acao:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        .login-btn.admin-mode {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+
+        .login-btn.view-mode {
+            background: #2196F3;
+            border-color: #2196F3;
+            color: white;
         }
 
         .modal {
@@ -246,232 +129,808 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
-            border: 2px solid #800020;
+            background: var(--fundo-principal);
+            border: 2px solid var(--cor-primaria);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 40px rgba(128,0,32,0.3);
+        }
+
+        .modal-content h2 {
+            color: var(--cor-primaria);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: var(--fundo-secundario);
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            color: var(--texto-principal);
+            font-size: 16px;
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-login {
+            background: var(--cor-primaria);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: var(--fundo-secundario);
+            color: var(--texto-principal);
+            border: 1px solid var(--borda);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .menu-section {
+            background: var(--fundo-secundario);
+            border: 1px solid var(--borda);
             border-radius: 20px;
             padding: 30px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
         }
 
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .login-form input {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid #800020;
-            border-radius: 10px;
-            padding: 15px;
-            color: #fff;
-            font-size: 1rem;
-        }
-
-        .login-form input:focus {
-            outline: none;
-            border-color: #fff;
-        }
-
-        .bairros-lista {
-            margin: 20px 0;
-        }
-
-        .bairro-item {
+        .menu-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #800020;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        .bairro-info {
-            flex: 1;
-        }
-
-        .bairro-nome {
-            font-weight: 600;
-            color: #800020;
-        }
-
-        .bairro-frete {
-            color: #FFC107;
-        }
-
-        .bairro-acoes {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-bairro {
-            background: none;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 5px;
-        }
-
-        .btn-bairro.editar:hover { color: #FFC107; }
-        .btn-bairro.excluir:hover { color: #dc3545; }
-
-        .novo-bairro {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            margin-bottom: 30px;
             flex-wrap: wrap;
+            gap: 15px;
         }
 
-        .novo-bairro input {
-            flex: 1;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid #800020;
+        .menu-header h2 {
+            color: var(--cor-primaria);
+            font-size: 1.8rem;
+            border-left: 4px solid var(--cor-primaria);
+            padding-left: 15px;
+        }
+
+        .preco-prato {
+            background: rgba(128,0,32,0.05);
+            border: 1px solid var(--cor-primaria);
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: var(--cor-primaria);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preco-prato input {
+            width: 80px;
+            padding: 5px 10px;
+            background: white;
+            border: 1px solid var(--borda);
             border-radius: 8px;
-            padding: 12px;
-            color: #fff;
-            min-width: 150px;
+            color: var(--texto-principal);
         }
 
-        .badge-novo {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: #4CAF50;
+        .admin-message {
+            background: rgba(128,0,32,0.05);
+            border: 1px dashed var(--cor-primaria);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            color: var(--cor-primaria);
+            display: none;
+        }
+
+        .categoria {
+            margin-bottom: 40px;
+        }
+
+        .categoria h3 {
+            color: var(--cor-primaria);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--cor-primaria);
+            padding-left: 10px;
+            font-size: 1.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-add-item {
+            background: var(--cor-primaria);
             color: white;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-add-item:hover {
+            background: var(--cor-secundaria);
+            transform: translateY(-2px);
+        }
+
+        .itens-categoria {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .item-card {
+            background: white;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            position: relative;
+            flex-wrap: wrap;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .item-card:hover {
+            border-color: var(--cor-primaria);
+            background: rgba(128,0,32,0.02);
+            transform: translateY(-2px);
+        }
+
+        .item-card.oculto {
+            opacity: 0.5;
+            background: #f0f0f0;
+        }
+
+        .item-card input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--cor-primaria);
+            cursor: pointer;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-nome {
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+
+        .item-valor {
+            color: var(--cor-primaria);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-left: 5px;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+
+        .btn-visibilidade, .btn-edit, .btn-delete, .btn-valor {
+            background: rgba(0,0,0,0.05);
+            border: 1px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 8px 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-visibilidade {
+            color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .btn-edit {
+            color: var(--cor-primaria);
+            border-color: var(--cor-primaria);
+        }
+
+        .btn-delete {
+            color: #f44336;
+            border-color: #f44336;
+        }
+
+        .btn-valor {
+            color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .acrescimos-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border: 1px solid var(--borda);
+            border-radius: 15px;
+        }
+
+        .acrescimos-section h3 {
+            color: var(--cor-primaria);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .acrescimos-lista {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .observacao-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--borda);
+        }
+
+        .observacao-container textarea {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            color: var(--texto-principal);
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .btn-add-prato {
+            background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 700;
+            width: 100%;
+            font-size: 1.1rem;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+
+        .btn-add-prato:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(128,0,32,0.3);
+        }
+
+        .pedidos-panel {
+            background: var(--fundo-secundario);
+            border: 1px solid var(--borda);
+            border-radius: 20px;
+            padding: 30px;
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+
+        .pedidos-panel h2 {
+            color: var(--cor-primaria);
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            border-left: 4px solid var(--cor-primaria);
+            padding-left: 15px;
+        }
+
+        .lista-pedido {
+            min-height: 150px;
+            margin-bottom: 20px;
+        }
+
+        .item-pedido {
+            background: white;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-edit-prato, .btn-remove-prato {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-edit-prato {
+            background: var(--cor-primaria);
+            color: white;
+        }
+
+        .btn-remove-prato {
+            background: #f44336;
+            color: white;
+        }
+
+        .observacao-pedido {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(128,0,32,0.05);
+            border-left: 3px solid var(--cor-primaria);
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .cliente-form {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .cliente-form h3 {
+            color: var(--cor-primaria);
+            margin-bottom: 15px;
+        }
+
+        .cliente-form label {
+            color: var(--cor-primaria);
+            font-weight: 500;
+            margin-top: 15px;
+            display: block;
+        }
+
+        .cliente-form input, .cliente-form select, .cliente-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            color: var(--texto-principal);
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .enderecos-salvos {
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--fundo-secundario);
+            border-radius: 12px;
+        }
+
+        .endereco-item {
+            background: white;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .endereco-item:hover {
+            border-color: var(--cor-primaria);
+        }
+
+        .endereco-item.selected {
+            border-color: var(--cor-primaria);
+            background: rgba(128,0,32,0.05);
+        }
+
+        .btn-salvar-endereco {
+            background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .config-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .config-panel h3 {
+            color: var(--cor-primaria);
+            margin-bottom: 15px;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .config-item input {
+            background: white;
+            border: 1px solid var(--borda);
+            color: var(--texto-principal);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .horario-status {
+            background: var(--fundo-secundario);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .aberto {
+            color: #4CAF50;
+        }
+
+        .fechado {
+            color: #f44336;
+        }
+
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 700;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            border: 2px solid #fff;
+            gap: 10px;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            transition: all 0.3s;
         }
 
-        @media (max-width: 768px) {
-            .pedidos-grid {
+        .btn-whatsapp:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(37,211,102,0.3);
+        }
+
+        .btn-whatsapp:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .total-pedido {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--cor-primaria);
+            text-align: right;
+            margin: 20px 0;
+            padding-top: 15px;
+            border-top: 2px solid var(--borda);
+        }
+
+        @media (max-width: 900px) {
+            .container {
                 grid-template-columns: 1fr;
             }
             
-            .btn-acao {
-                font-size: 0.75rem;
-                padding: 8px;
-            }
-            
-            .status-info {
-                justify-content: center;
+            .header h1 {
+                font-size: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
+    <!-- ===== CONFIGURAÇÕES RÁPIDAS (VOCÊ MUDA AQUI) ===== -->
+    <script>
+        // ===================================================
+        // ===== VOCÊ SÓ PRECISA MEXER NESTA PARTE ==========
+        // ===================================================
+        const CONFIG = {
+            // ---------- FRETE ----------
+            TIPO_FRETE: 'bairro',        // 'fixo' ou 'bairro'
+            VALOR_FRETE_FIXO: 7.00,      // Só usado se TIPO_FRETE = 'fixo'
+            
+            // ---------- CORES ----------
+            COR_VINHO: '#800020',         // Cor principal (vinho)
+            FUNDO_BRANCO: true,           // true = fundo branco, false = fundo escuro
+            
+            // ---------- TEXTO ----------
+            TEXTO_ESCURO: '#333333',       // Cor do texto (para fundo branco)
+            TEXTO_CLARO: '#ffffff'         // Cor do texto (para fundo escuro)
+        };
+        // ===================================================
+        // ===== NÃO MEXA DAQUI PARA BAIXO ===================
+        // ===================================================
+    </script>
+
     <div class="header">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div class="logo-container" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid #800020;">
-                <img id="logoImg" src="img/logorestaurante1.png" alt="Logo 40 Graus" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/60/800020/ffffff?text=40G'">
+        <div class="header-left">
+            <div class="logo-container">
+                <img id="logoImg" src="img/logorestaurante1.png" alt="40°" onerror="this.src='https://via.placeholder.com/60/800020/ffffff?text=40G'">
             </div>
-            <div>
-                <h1 id="nomeRestaurante">📊 Painel - 40 Graus</h1>
-                <p id="dataAtual"></p>
-            </div>
+            <h1 id="nomeRestaurante">Carregando...</h1>
         </div>
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div class="status-info">
-                <div class="status-box novos">
-                    <div class="numero" id="totalNovos">0</div>
-                    <div>Novos</div>
-                </div>
-                <div class="status-box preparando">
-                    <div class="numero" id="totalPreparando">0</div>
-                    <div>Preparando</div>
-                </div>
-                <div class="status-box saiu">
-                    <div class="numero" id="totalSaiu">0</div>
-                    <div>Saiu</div>
-                </div>
-                <div class="status-box entregue">
-                    <div class="numero" id="totalEntregue">0</div>
-                    <div>Entregues</div>
-                </div>
-                <div class="status-box cancelado">
-                    <div class="numero" id="totalCancelado">0</div>
-                    <div>Cancelados</div>
+        <div class="header-info">
+            <div class="data-menu" id="dataMenu"></div>
+            <button class="login-btn" id="loginBtn" onclick="abrirModalLogin()">👤 Área Admin</button>
+        </div>
+    </div>
+
+    <!-- MODAL DE LOGIN -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h2>🔐 ÁREA RESTRITA</h2>
+            <input type="password" id="senhaInput" placeholder="Digite a senha" onkeypress="if(event.key==='Enter'){verificarSenha()}">
+            <button class="btn-login" onclick="verificarSenha()">ENTRAR</button>
+            <button class="btn-cancel" onclick="fecharModalLogin()">CANCELAR</button>
+            <div class="erro-login" id="erroLogin" style="color:#f44336; text-align:center; margin-top:10px; display:none;">Senha incorreta!</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ÁREA DO CARDÁPIO -->
+        <div class="menu-section">
+            <div class="menu-header">
+                <h2>📋 MENU DO DIA</h2>
+                <div class="preco-prato">
+                    Valor da Refeição: R$ 
+                    <input type="number" id="valorPrato" value="25.90" step="0.10" min="0" disabled>
                 </div>
             </div>
-            <button class="admin-btn" id="adminBtn" onclick="abrirModalLogin()">
-                <i class="fas fa-cog"></i>
+
+            <!-- MENSAGEM PARA ADMIN -->
+            <div class="admin-message" id="adminMessage">
+                👤 Área administrativa. Faça login para editar.
+            </div>
+
+            <!-- ACOMPANHAMENTOS -->
+            <div class="categoria">
+                <h3>🍚 Acompanhamentos (1 obrigatório)
+                    <button class="btn-add-item" onclick="adicionarItem('acompanhamentos')" id="btnAddAcompanhamentos" style="display: none;">➕ Adicionar</button>
+                </h3>
+                <div class="itens-categoria" id="acompanhamentos"></div>
+            </div>
+
+            <!-- FEIJOES -->
+            <div class="categoria">
+                <h3>🫘 Feijões (0 ou 1)
+                    <button class="btn-add-item" onclick="adicionarItem('feijoes')" id="btnAddFeijoes" style="display: none;">➕ Adicionar</button>
+                </h3>
+                <div class="itens-categoria" id="feijoes"></div>
+            </div>
+            
+            <!-- GUARNICOES -->
+            <div class="categoria">
+                <h3>🍟 Guarnições (0 a 2)
+                    <button class="btn-add-item" onclick="adicionarItem('guarnicoes')" id="btnAddGuarnicoes" style="display: none;">➕ Adicionar</button>
+                </h3>
+                <div class="itens-categoria" id="guarnicoes"></div>
+            </div>
+        
+            <!-- SALADAS -->
+            <div class="categoria">
+                <h3>🥗 Saladas (0 ou 1)
+                    <button class="btn-add-item" onclick="adicionarItem('saladas')" id="btnAddSaladas" style="display: none;">➕ Adicionar</button>
+                </h3>
+                <div class="itens-categoria" id="saladas"></div>
+            </div>
+
+            <!-- CARNES -->
+            <div class="categoria">
+                <h3>🥩 Carnes (0 ou 1)
+                    <button class="btn-add-item" onclick="adicionarItem('carnes')" id="btnAddCarnes" style="display: none;">➕ Adicionar</button>
+                </h3>
+                <div class="itens-categoria" id="carnes"></div>
+            </div>
+            
+            <!-- BEBIDAS -->
+            <div class="categoria">
+                <h3>🥤 Bebidas
+                    <button class="btn-add-item" onclick="adicionarItem('bebidas')" id="btnAddBebidas" style="display: none;">➕ Adicionar</button>
+                </h3>
+                <div class="itens-categoria" id="bebidas"></div>
+            </div>
+
+            <!-- ACRÉSCIMOS -->
+            <div class="acrescimos-section">
+                <h3>➕ Acréscimos
+                    <button class="btn-add-item" onclick="adicionarAcrescimo()" id="btnAddAcrescimo" style="display: none;">➕ Adicionar</button>
+                </h3>
+                <div class="acrescimos-lista" id="acrescimos"></div>
+            </div>
+
+            <!-- OBSERVAÇÃO -->
+            <div class="observacao-container">
+                <label><i class="fas fa-pen"></i> Observação:</label>
+                <textarea id="observacaoPrato" placeholder="Ex: Sem cebola, ponto da carne..."></textarea>
+            </div>
+
+            <button class="btn-add-prato" onclick="adicionarPrato()">➕ ADICIONAR AO PEDIDO</button>
+        </div>
+
+        <!-- PAINEL DE PEDIDOS -->
+        <div class="pedidos-panel">
+            <h2>🛒 SEU PEDIDO</h2>
+            <div class="lista-pedido" id="listaPedidos">Nenhum item adicionado</div>
+
+            <div class="cliente-form">
+                <h3>👤 Dados do Pedido</h3>
+                
+                <!-- TIPO DE ENTREGA (AGORA NO TOPO) -->
+                <label style="margin-top:0;">Tipo de Entrega</label>
+                <select id="tipoEntrega" onchange="toggleEntregaRetirada()">
+                    <option value="entrega" selected>🛵 Entrega</option>
+                    <option value="retirada">🏃 Retirada no local</option>
+                </select>
+                
+                <label>Nome Completo *</label>
+                <input type="text" id="nomeCliente" placeholder="Digite seu nome" onchange="buscarEnderecosCliente()">
+
+                <label>Telefone *</label>
+                <input type="tel" id="telefone" placeholder="(11) 99999-9999" oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="11">
+
+                <!-- CAMPOS DE ENTREGA (SÓ APARECEM SE FOR ENTREGA) -->
+                <div id="camposEntrega">
+                    <div class="row-2">
+                        <div>
+                            <label>CEP</label>
+                            <input type="text" id="cep" placeholder="00000-000" onblur="buscarCep()" maxlength="9">
+                        </div>
+                        <div>
+                            <label>Frete</label>
+                            <input type="text" id="freteValor" readonly value="R$ 7,00" style="background: #f5f5f5; font-weight: bold;">
+                        </div>
+                    </div>
+
+                    <div class="row-2">
+                        <div>
+                            <label>Cidade</label>
+                            <input type="text" id="cidade" placeholder="Cidade" readonly>
+                        </div>
+                        <div>
+                            <label>Bairro *</label>
+                            <input type="text" id="bairro" placeholder="Bairro" readonly>
+                        </div>
+                    </div>
+
+                    <label>Rua *</label>
+                    <input type="text" id="rua" placeholder="Rua" readonly>
+
+                    <div class="row-2">
+                        <div>
+                            <label>Número *</label>
+                            <input type="text" id="numero" placeholder="Nº">
+                        </div>
+                        <div>
+                            <label>Complemento</label>
+                            <input type="text" id="complemento" placeholder="Apto/Casa">
+                        </div>
+                    </div>
+
+                    <label>Referência</label>
+                    <textarea id="referencia" rows="2" placeholder="Ex: próximo ao mercado..."></textarea>
+
+                    <!-- ENDEREÇOS SALVOS -->
+                    <div class="enderecos-salvos" id="enderecosSalvosSection" style="display: none;">
+                        <h4>📍 Endereços Salvos</h4>
+                        <div class="enderecos-list" id="enderecosList"></div>
+                    </div>
+
+                    <button class="btn-salvar-endereco" onclick="salvarEndereco()">💾 Salvar este endereço</button>
+                </div>
+
+                <label style="margin-top:15px;">Pagamento</label>
+                <select id="pagamento" onchange="toggleTroco()">
+                    <option value="dinheiro">💵 Dinheiro</option>
+                    <option value="cartao">💳 Cartão</option>
+                    <option value="pix" selected>📱 Pix</option>
+                </select>
+
+                <div id="trocoDiv" style="display: none;">
+                    <label>Troco para quanto?</label>
+                    <input type="number" id="trocoValor" placeholder="R$ 0,00" step="0.10" min="0">
+                </div>
+
+                <div class="total-pedido" id="totalFinal">Total: R$ 0,00</div>
+            </div>
+
+            <!-- CONFIGURAÇÕES -->
+            <div class="config-panel">
+                <h3>🕒 Horário de Funcionamento</h3>
+                <div class="config-item">
+                    <span>Horário:</span>
+                    <div>
+                         <input type="time" id="horaAbre" value="11:00"> às 
+                         <input type="time" id="horaFecha" value="23:00">
+                    </div>
+                </div>
+                <div class="horario-status" id="statusHorario">Verificando...</div>
+            </div>
+
+            <button class="btn-whatsapp" onclick="enviarWhatsApp()" id="btnWhatsApp">
+                <i class="fab fa-whatsapp"></i> ENVIAR PEDIDO
             </button>
         </div>
     </div>
-
-    <div class="filtros">
-        <button class="filtro-btn ativo" onclick="filtrarPedidos('todos')">📋 Todos (2 dias)</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('novo')">🟢 Novos</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('preparando')">🟡 Preparando</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('saiu')">🔵 Saiu</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('entregue')">✅ Entregues (2 dias)</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('cancelado')">❌ Cancelados</button>
-    </div>
-
-    <div class="pedidos-grid" id="pedidosGrid">
-        <div class="loading">
-            <i class="fas fa-spinner fa-spin"></i> Carregando pedidos...
-        </div>
-    </div>
-
-    <!-- MODAL LOGIN -->
-    <div class="modal" id="modalLogin">
-        <div class="modal-content">
-            <h2 style="color: #800020; margin-bottom: 20px;">🔐 Login Admin</h2>
-            <div class="login-form">
-                <input type="password" id="senhaAdmin" placeholder="Digite a senha" onkeypress="if(event.key==='Enter') verificarLogin()">
-                <button class="btn-acao" onclick="verificarLogin()" style="background:#800020; color:#fff;">Entrar</button>
-                <button class="btn-acao" onclick="fecharModal('modalLogin')" style="background:#333;">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-        <!-- MODAL CONFIG BAIRROS -->
-    <div class="modal" id="modalBairros">
-        <div class="modal-content">
-            <h2 style="color: #800020; margin-bottom: 20px;">🏘️ Configurar Bairros Atendidos</h2>
-            
-            <div class="bairros-lista" id="bairrosLista">
-                <!-- Cidades e bairros serão carregados aqui -->
-            </div>
-
-            <button class="btn-acao" onclick="fecharModal('modalBairros')" style="width:100%; margin-top:20px; background:#800020; color:#fff;">Fechar</button>
-        </div>
-    </div>
-
-    <!-- MODAL DETALHES -->
-    <div class="modal" id="modalDetalhes">
-        <div class="modal-content">
-            <h2 style="color: #800020; margin-bottom: 20px;">📋 Detalhes do Pedido</h2>
-            <div id="detalhesConteudo" class="detalhes-pedido"></div>
-            <button class="btn-acao" onclick="fecharModal('modalDetalhes')" style="width:100%; margin-top:20px; background:#800020; color:#fff;">Fechar</button>
-        </div>
-    </div>
-
-    <audio id="notificacaoSonora" preload="auto" style="display:none;">
-        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-    </audio>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-        // ===== CONFIGURAÇÃO =====
+        // ===== APLICAR CONFIGURAÇÕES DE CORES =====
+        (function aplicarCores() {
+            const root = document.documentElement;
+            
+            // Aplicar cor vinho
+            root.style.setProperty('--cor-primaria', CONFIG.COR_VINHO);
+            
+            // Calcular tom mais claro (usando opacidade)
+            root.style.setProperty('--cor-secundaria', CONFIG.COR_VINHO + 'dd');
+            
+            // Aplicar fundo
+            if (CONFIG.FUNDO_BRANCO) {
+                root.style.setProperty('--fundo-principal', '#ffffff');
+                root.style.setProperty('--fundo-secundario', '#f5f5f5');
+                root.style.setProperty('--texto-principal', CONFIG.TEXTO_ESCURO);
+                root.style.setProperty('--texto-secundario', '#666666');
+                root.style.setProperty('--borda', '#dddddd');
+            } else {
+                root.style.setProperty('--fundo-principal', '#0f0f0f');
+                root.style.setProperty('--fundo-secundario', '#1a1a1a');
+                root.style.setProperty('--texto-principal', CONFIG.TEXTO_CLARO);
+                root.style.setProperty('--texto-secundario', '#cccccc');
+                root.style.setProperty('--borda', 'rgba(128,0,32,0.3)');
+            }
+        })();
+
+        // ===== CONFIGURAÇÃO DO FIREBASE =====
         const RESTAURANTE_ID = 'restaurante1';
         
         const firebaseConfig = {
@@ -489,628 +948,1271 @@
         const dbRef = database.ref('restaurantes/' + RESTAURANTE_ID);
 
         // ===== VARIÁVEIS GLOBAIS =====
-        let todosPedidos = [];
-        let todosBairros = {};
-        let filtroAtual = 'todos';
+        let cardapio = {
+            carnes: [],
+            acompanhamentos: [],
+            feijoes: [],
+            saladas: [],
+            guarnicoes: [],
+            bebidas: []
+        };
+        let acrescimos = [];
+        let config = {
+            valorPrato: 25.90,
+            horaAbre: '11:00',
+            horaFecha: '23:00',
+            valorSemArroz: 3.00
+        };
+        let visibilidadeItens = {};
+        let visibilidadeAcrescimos = {}; 
+        let pedidosAtuais = [];
         let adminLogado = false;
-        
-        const templateCache = new Map();
+        let nivelAcesso = null;
+        let senhaMaster = '';
+        let senhaView = '';
+        let whatsappNumero = '';
+        let enderecosClientes = {};
+        let ultimoEnderecoSelecionado = null;
+        let bairrosGlobais = {};
+        let atendimentoRestaurante = {};
 
-        // ===== VERIFICAR SE ESTÁ NO INTERVALO DE 2 DIAS =====
-        function ultimos2Dias(timestamp) {
-            const data = new Date(timestamp);
-            const hoje = new Date();
-            const doisDiasAtras = new Date();
-            doisDiasAtras.setDate(hoje.getDate() - 2);
-            
-            data.setHours(0, 0, 0, 0);
-            doisDiasAtras.setHours(0, 0, 0, 0);
-            
-            return data >= doisDiasAtras;
-        }
-
-        // ===== VERIFICAR SE É HOJE =====
-        function ehHoje(timestamp) {
-            const data = new Date(timestamp);
-            const hoje = new Date();
-            data.setHours(0, 0, 0, 0);
-            hoje.setHours(0, 0, 0, 0);
-            return data.getTime() === hoje.getTime();
-        }
-
-        // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-            Notification.requestPermission();
-        }
-
-        // ===== TOCAR NOTIFICAÇÃO =====
-        function tocarNotificacao() {
-            const audio = document.getElementById('notificacaoSonora');
-            audio.play().catch(e => console.log('Erro ao tocar som:', e));
-        }
-
-        // ===== MOSTRAR NOTIFICAÇÃO =====
-        function mostrarNotificacao(titulo, corpo) {
-            if (Notification.permission === 'granted') {
-                new Notification(titulo, {
-                    body: corpo,
-                    icon: 'img/logorestaurante1.png',
-                    requireInteraction: true
-                });
-            }
-        }
-
-        // ===== LISTENER PRINCIPAL =====
-        function iniciarListenerUnico() {
-            document.getElementById('pedidosGrid').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando pedidos...</div>';
-            
+        // ===== CARREGAR DADOS DO FIREBASE =====
+        function carregarDados() {
             dbRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                console.log('📦 Dados recebidos:', data);
+                if (!data) return;
                 
-                if (!data) {
-                    document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum dado encontrado</p>';
-                    return;
-                }
+                console.log('📦 Dados recebidos');
                 
-                // Nome do restaurante
-                if (data.info?.nome) {
-                    document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + data.info.nome;
-                }
-                
-                // Carregar bairros
-                if (data.bairros) {
-                    todosBairros = data.bairros;
-                }
-                
-                // Carregar pedidos
-                if (data.pedidos) {
-                    todosPedidos = Object.entries(data.pedidos).map(([id, pedido]) => ({
-                        id: id,
-                        ...pedido
-                    }));
+                // INFO
+                if (data.info) {
+                    document.getElementById('nomeRestaurante').textContent = data.info.nome || '40 Graus';
+                    whatsappNumero = data.info.whatsapp || '';
+                    senhaMaster = data.info.senha_master || '';
+                    senhaView = data.info.senha_view || '';
                     
-                    console.log(`📋 ${todosPedidos.length} pedidos carregados`);
-                    
-                    atualizarEstatisticas();
-                    filtrarPedidos(filtroAtual);
-                    templateCache.clear();
+                    if (data.info.logo) {
+                        document.getElementById('logoImg').src = data.info.logo;
+                    }
                 }
+                
+                // CARDÁPIO
+                if (data.cardapio) {
+                    cardapio = data.cardapio;
+                }
+                
+                // ACRÉSCIMOS
+                if (data.acrescimos) {
+                    acrescimos = data.acrescimos;
+                }
+                
+                // CONFIG
+                if (data.config) {
+                    config = {
+                        valorPrato: data.config.valorPrato || 25.90,
+                        horaAbre: data.config.horaAbre || '11:00',
+                        horaFecha: data.config.horaFecha || '23:00',
+                        valorSemArroz: data.config.valorSemArroz || 3.00
+                    };
+                    document.getElementById('valorPrato').value = config.valorPrato;
+                    document.getElementById('horaAbre').value = config.horaAbre;
+                    document.getElementById('horaFecha').value = config.horaFecha;
+                }
+                
+                // VISIBILIDADE
+                if (data.visibilidade) {
+                    visibilidadeItens = data.visibilidade;
+                }
+                
+                if (data.visibilidadeAcrescimos) {
+                    visibilidadeAcrescimos = data.visibilidadeAcrescimos;
+                }
+                
+                // ATENDIMENTO (para frete por bairro)
+                if (data.atendimento) {
+                    atendimentoRestaurante = data.atendimento;
+                }
+                
+                renderizarCardapio();
+                renderizarAcrescimos();
+                verificarHorario();
+                
             }, (error) => {
                 console.error('❌ Erro no Firebase:', error);
-                document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; color:#800020;">Erro ao carregar dados</p>';
+            });
+            
+            // CARREGAR BAIRROS GLOBAIS
+            database.ref('bairros_globais').once('value', (snapshot) => {
+                bairrosGlobais = snapshot.val() || {};
+                console.log('🏘️ Bairros globais carregados');
             });
         }
 
-        // ===== ATUALIZAR ESTATÍSTICAS =====
-        function atualizarEstatisticas() {
-            const stats = { novo: 0, preparando: 0, saiu: 0, entregue: 0, cancelado: 0 };
+       // ===== RENDERIZAR CARDÁPIO (VERSÃO CORRIGIDA) =====
+function renderizarCardapio() {
+    console.log('🎨 Renderizando cardápio:', cardapio);
+    
+    // Carnes
+    const carnesDiv = document.getElementById('carnes');
+    carnesDiv.innerHTML = '';
+    if (cardapio.carnes && cardapio.carnes.length > 0) {
+        cardapio.carnes.forEach((item, index) => {
+            const visivel = visibilidadeItens[`carnes_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
             
-            todosPedidos.forEach(pedido => {
-                if (ehHoje(pedido.data) && stats.hasOwnProperty(pedido.status)) {
-                    stats[pedido.status]++;
-                }
-            });
-
-            document.getElementById('totalNovos').textContent = stats.novo;
-            document.getElementById('totalPreparando').textContent = stats.preparando;
-            document.getElementById('totalSaiu').textContent = stats.saiu;
-            document.getElementById('totalEntregue').textContent = stats.entregue;
-            document.getElementById('totalCancelado').textContent = stats.cancelado;
-        }
-
-        // ===== FILTRAR PEDIDOS =====
-        function filtrarPedidos(filtro, event = null) {
-            filtroAtual = filtro;
-            
-            document.querySelectorAll('.filtro-btn').forEach(btn => {
-                btn.classList.remove('ativo');
-            });
-            if (event) event.target.classList.add('ativo');
-
-            let resultado = [];
-            
-            if (filtro === 'todos') {
-                // TODOS os status dos últimos 2 dias
-                resultado = todosPedidos.filter(p => ultimos2Dias(p.data));
-            } 
-            else if (filtro === 'entregue') {
-                // Só entregues dos últimos 2 dias
-                resultado = todosPedidos.filter(p => p.status === 'entregue' && ultimos2Dias(p.data));
-            }
-            else {
-                // Demais filtros: só hoje
-                resultado = todosPedidos.filter(p => p.status === filtro && ehHoje(p.data));
-            }
-            
-            // Ordenar (mais recentes primeiro)
-            resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
-            
-            renderizarPedidos(resultado);
-        }
-
-        // ===== RENDERIZAR PEDIDOS =====
-        function renderizarPedidos(pedidos) {
-            const grid = document.getElementById('pedidosGrid');
-            
-            if (pedidos.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido encontrado</p>';
-                return;
-            }
-
-            const fragment = document.createDocumentFragment();
-            const template = document.createElement('template');
-
-            pedidos.forEach(pedido => {
-                const cacheKey = `${pedido.id}_${pedido.status}`;
-                
-                if (templateCache.has(cacheKey)) {
-                    fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
-                    return;
-                }
-
-                const statusClass = pedido.status || 'novo';
-                const statusText = {
-                    'novo': '🟢 NOVO',
-                    'preparando': '🟡 PREPARANDO',
-                    'saiu': '🔵 SAIU',
-                    'entregue': '✅ ENTREGUE',
-                    'cancelado': '❌ CANCELADO'
-                }[statusClass] || '🟢 NOVO';
-
-                const dataPedido = new Date(pedido.data);
-                const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-                const html = `
-                    <div class="pedido-card ${statusClass}">
-                        <div class="pedido-header">
-                            <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
-                            <span class="pedido-status status-${statusClass}">${statusText}</span>
-                        </div>
-                        
-                        <div class="pedido-cliente">
-                            <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
-                        </div>
-                        
-                        <div class="pedido-info">
-                            <div><i class="far fa-clock"></i> ${horaFormatada}</div>
-                            <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
-                            <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
-                            <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
-                            ${pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro] ? 
-                                `<div><i class="fas fa-map-marker-alt"></i> ${todosBairros[pedido.cliente.bairro].nome}</div>` : ''}
-                        </div>
-                        
-                        ${pedido.frete ? `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>` : ''}
-                        
-                        <div class="pedido-total">
-                            R$ ${(pedido.total || 0).toFixed(2)}
-                        </div>
-
-                        <div class="pedido-acoes">
-                            ${statusClass !== 'entregue' && statusClass !== 'cancelado' ? `
-                                ${statusClass === 'novo' ? `
-                                    <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
-                                        <i class="fas fa-utensils"></i> PREPARAR
-                                    </button>
-                                ` : ''}
-                                
-                                ${statusClass === 'preparando' ? `
-                                    <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
-                                        <i class="fas fa-motorcycle"></i> SAIU
-                                    </button>
-                                ` : ''}
-                                
-                                ${statusClass === 'saiu' ? `
-                                    <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
-                                        <i class="fas fa-check"></i> ENTREGUE
-                                    </button>
-                                ` : ''}
-                                
-                                <button class="btn-acao btn-cancelar" onclick="atualizarStatus('${pedido.id}', 'cancelado')">
-                                    <i class="fas fa-times"></i> CANCELAR
-                                </button>
-                            ` : ''}
-                            
-                            <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
-                                <i class="fab fa-whatsapp"></i> WhatsApp
+            carnesDiv.innerHTML += `
+                <div class="item-card ${!visivel ? 'oculto' : ''}">
+                    <input type="checkbox" value="${item}" data-categoria="carnes" data-index="${index}" onchange="validarLimites(this)">
+                    <div class="item-info">
+                        <span class="item-nome">${item}</span>
+                    </div>
+                    ${adminLogado ? `
+                        <div class="admin-controls">
+                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidade('carnes', ${index})">
+                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
                             </button>
-                            
-                            <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
-                                <i class="fas fa-print"></i> IMPRIMIR
-                            </button>
-                            
-                            <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
-                                <i class="fas fa-eye"></i> DETALHES
-                            </button>
+                            <button class="btn-edit" onclick="editarItem('carnes', ${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="excluirItem('carnes', ${index})"><i class="fas fa-trash"></i></button>
                         </div>
-                    </div>
-                `;
-
-                template.innerHTML = html.trim();
-                const card = template.content.firstChild;
-                
-                templateCache.set(cacheKey, card.cloneNode(true));
-                fragment.appendChild(card);
-            });
-
-            grid.innerHTML = '';
-            grid.appendChild(fragment);
-        }
-
-        // ===== ATUALIZAR STATUS =====
-        function atualizarStatus(pedidoId, novoStatus) {
-            dbRef.child('pedidos/' + pedidoId + '/status').set(novoStatus)
-                .then(() => console.log('Status atualizado'))
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro ao atualizar status');
-                });
-        }
-
-        // ===== ENVIAR WHATSAPP =====
-        function enviarWhatsApp(pedidoId) {
-            const pedido = todosPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
-
-            let telefone = pedido.cliente?.telefone || '';
-            telefone = telefone.replace(/\D/g, '');
-            
-            if (!telefone) {
-                telefone = prompt('Digite o telefone do cliente (com DDD):', '55');
-                if (!telefone) return;
-            }
-
-            if (!telefone.startsWith('55')) {
-                telefone = '55' + telefone;
-            }
-
-            const statusMsg = {
-                'novo': 'foi confirmado',
-                'preparando': 'está sendo preparado',
-                'saiu': 'saiu para entrega',
-                'entregue': 'foi entregue',
-                'cancelado': 'foi cancelado'
-            }[pedido.status] || 'está em processamento';
-
-            let mensagem = `🍽️ *40 GRAUS*\n\nOlá *${pedido.cliente?.nome}*, tudo bem?\n\nSeu pedido *#${pedido.numero || pedido.id.slice(-4)}* ${statusMsg}.`;
-            
-            if (pedido.frete) {
-                mensagem += `\n\n💰 *Subtotal:* R$ ${(pedido.total - pedido.frete).toFixed(2)}`;
-                mensagem += `\n🚚 *Frete:* R$ ${pedido.frete.toFixed(2)}`;
-                mensagem += `\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}`;
-            } else {
-                mensagem += `\n\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}`;
-            }
-            
-            mensagem += `\n\nAgradecemos pela preferência! 🙏`;
-
-            window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
-        }
-
-        // ===== IMPRIMIR PEDIDO =====
-        function imprimirPedido(pedidoId) {
-            const pedido = todosPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
-
-            const janelaImpressao = window.open('', '_blank');
-            
-            janelaImpressao.document.write(`
-                <html>
-                <head>
-                    <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
-                    <style>
-                        body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; margin: 0 auto; padding: 5px; }
-                        .header { text-align: center; margin-bottom: 10px; }
-                        .header h1 { font-size: 16px; margin: 0; color: #800020; }
-                        .linha { border-top: 1px dashed #000; margin: 5px 0; }
-                        .item { margin: 5px 0; }
-                        .subtotal { text-align: right; font-weight: bold; margin: 5px 0; border-top: 1px dotted #000; padding-top: 3px; }
-                        .total { font-size: 14px; font-weight: bold; text-align: right; border-top: 2px solid #000; padding-top: 5px; margin-top: 5px; }
-                        .footer { text-align: center; margin-top: 10px; font-size: 10px; }
-                        table { width: 100%; }
-                        td { padding: 2px 0; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>40 GRAUS</h1>
-                        <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
-                        <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
-                    </div>
-                    
-                    <div class="linha"></div>
-                    
-                    <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
-                    ${pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro] ? 
-                        `<p><strong>Bairro:</strong> ${todosBairros[pedido.cliente.bairro].nome}</p>` : ''}
-                    <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
-                    
-                    <div class="linha"></div>
-                    
-                    <h3>ITENS</h3>
-            `);
-
-            let subtotal = 0;
-
-            pedido.itens?.forEach((item, idx) => {
-                janelaImpressao.document.write(`
-                    <div class="item">
-                        <strong>REFEIÇÃO ${idx + 1}</strong>
-                        <table>
-                `);
-                
-                if (item.carnes?.length) {
-                    janelaImpressao.document.write(`<tr><td>🥩 ${item.carnes.join(', ')}</td></tr>`);
-                }
-                if (item.acompanhamentos?.length) {
-                    janelaImpressao.document.write(`<tr><td>🍚 ${item.acompanhamentos.join(', ')}</td></tr>`);
-                }
-                if (item.feijoes?.length) {
-                    janelaImpressao.document.write(`<tr><td>🫘 ${item.feijoes.join(', ')}</td></tr>`);
-                }
-                if (item.saladas?.length) {
-                    janelaImpressao.document.write(`<tr><td>🥗 ${item.saladas.join(', ')}</td></tr>`);
-                }
-                if (item.observacao) {
-                    janelaImpressao.document.write(`<tr><td>📝 ${item.observacao}</td></tr>`);
-                }
-                
-                janelaImpressao.document.write(`</table></div>`);
-                subtotal += 25.90; // Valor base do prato
-            });
-
-            if (pedido.frete) {
-                janelaImpressao.document.write(`
-                    <div class="item">
-                        <table>
-                            <tr>
-                                <td>🚚 Frete</td>
-                                <td class="preco">R$ ${pedido.frete.toFixed(2)}</td>
-                            </tr>
-                        </table>
-                    </div>
-                `);
-            }
-
-            janelaImpressao.document.write(`
-                    <div class="linha"></div>
-                    <div class="total">
-                        TOTAL: R$ ${pedido.total?.toFixed(2)}
-                    </div>
-                    
-                    <div class="footer">
-                        Obrigado pela preferência!
-                    </div>
-                    
-                    <script>
-                        window.onload = function() { 
-                            window.print(); 
-                            setTimeout(() => window.close(), 1000); 
-                        };
-                    <\/script>
-                </body>
-                </html>
-            `);
-            
-            janelaImpressao.document.close();
-        }
-
-        // ===== VER DETALHES =====
-        function verDetalhes(pedidoId) {
-            const pedido = todosPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
-
-            let html = '<table>';
-            html += `<tr><td>Número:</td><td><strong>#${pedido.numero || pedido.id.slice(-4)}</strong></td></tr>`;
-            html += `<tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>`;
-            html += `<tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>`;
-            
-            if (pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro]) {
-                html += `<tr><td>Bairro:</td><td>${todosBairros[pedido.cliente.bairro].nome} (Frete: R$ ${todosBairros[pedido.cliente.bairro].frete.toFixed(2)})</td></tr>`;
-            }
-            
-            if (pedido.cliente?.endereco) {
-                html += `<tr><td>Endereço:</td><td>${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</td></tr>`;
-            }
-            
-            html += `<tr><td>Pagamento:</td><td>${pedido.pagamento?.toUpperCase() || 'N/A'}</td></tr>`;
-            html += `<tr><td>Entrega:</td><td>${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</td></tr>`;
-            
-            if (pedido.frete) {
-                html += `<tr><td>Frete:</td><td>R$ ${pedido.frete.toFixed(2)}</td></tr>`;
-            }
-            
-            html += '</table><h3 style="color:#800020;">Itens:</h3><table>';
-            
-            pedido.itens?.forEach((item, idx) => {
-                html += `<tr><td colspan="2"><strong>Refeição ${idx + 1}</strong></td></tr>`;
-                if (item.carnes?.length) html += `<tr><td>Carnes:</td><td>${item.carnes.join(', ')}</td></tr>`;
-                if (item.acompanhamentos?.length) html += `<tr><td>Acompanhamentos:</td><td>${item.acompanhamentos.join(', ')}</td></tr>`;
-                if (item.feijoes?.length) html += `<tr><td>Feijões:</td><td>${item.feijoes.join(', ')}</td></tr>`;
-                if (item.saladas?.length) html += `<tr><td>Saladas:</td><td>${item.saladas.join(', ')}</td></tr>`;
-                if (item.observacao) html += `<tr><td>Obs:</td><td>${item.observacao}</td></tr>`;
-            });
-            
-            html += `<tr><td colspan="2" style="border-top:2px solid #800020;"><strong>Total: R$ ${pedido.total?.toFixed(2)}</strong></td></tr></table>`;
-
-            document.getElementById('detalhesConteudo').innerHTML = html;
-            document.getElementById('modalDetalhes').style.display = 'flex';
-        }
-
-        // ===== FUNÇÕES DE MODAL =====
-        function abrirModalLogin() {
-            if (adminLogado) {
-                abrirModalBairros();
-            } else {
-                document.getElementById('modalLogin').style.display = 'flex';
-                document.getElementById('senhaAdmin').focus();
-            }
-        }
-
-        function abrirModalBairros() {
-            carregarBairros();
-            document.getElementById('modalBairros').style.display = 'flex';
-        }
-
-        function fecharModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-// ===== VERIFICAR LOGIN =====
-function verificarLogin() {
-    const senhaDigitada = document.getElementById('senhaAdmin').value;
-    
-    dbRef.child('info/senha_master').once('value', (snapshot) => {  // ← Mudado de 'senhaAdmin' para 'senha_master'
-        const senhaCorreta = snapshot.val();
-        
-        if (senhaDigitada === senhaCorreta) {
-            adminLogado = true;
-            document.getElementById('adminBtn').classList.add('ativo');
-            fecharModal('modalLogin');
-            abrirModalBairros();
-        } else {
-            alert('Senha incorreta!');
-        }
-    });
-}
-        // ===== CARREGAR CIDADES E BAIRROS =====
-function carregarBairros() {
-    const lista = document.getElementById('bairrosLista');
-    
-    // Busca cidades GLOBAIS
-    database.ref('bairros_globais').once('value', (snapshot) => {
-        const cidades = snapshot.val() || {};
-        
-        if (Object.keys(cidades).length === 0) {
-            lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma cidade cadastrada</p>';
-            return;
-        }
-
-        let html = `
-            <div style="margin-bottom:20px;">
-                <label style="color:#800020; font-weight:600;">Selecione a cidade:</label>
-                <select id="seletorCidade" onchange="mudarCidade()" style="width:100%; padding:12px; margin-top:5px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;">
-        `;
-        
-        Object.entries(cidades).forEach(([key, cidade]) => {
-            html += `<option value="${key}">${cidade.nome}</option>`;
-        });
-        
-        html += `</select></div>`;
-        html += `<div id="bairrosContainer"></div>`;
-        
-        lista.innerHTML = html;
-        
-        // Carrega bairros da primeira cidade
-        mudarCidade();
-    });
-}
-// ===== FUNÇÕES AUXILIARES =====
-function toggleBairro(cidadeKey, bairroKey, ativo) {
-    const inputFrete = document.getElementById(`frete_${cidadeKey}_${bairroKey}`);
-    inputFrete.disabled = !ativo;
-    
-    if (ativo) {
-        inputFrete.focus();
-    } else {
-        // Se desativou, remove
-        dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).remove();
-    }
-}
-
-function salvarFrete(cidadeKey, bairroKey, valor) {
-    const frete = parseFloat(valor);
-    if (isNaN(frete) || frete < 0) return;
-    
-    dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).set({
-        cidade: cidadeKey,
-        bairro: bairroKey,
-        ativo: true,
-        frete: frete
-    }).then(() => {
-        // Feedback visual opcional
-        console.log('Frete salvo!');
-    });
-}
-
-// ===== MUDAR CIDADE =====
-function mudarCidade() {
-    const cidadeKey = document.getElementById('seletorCidade').value;
-    
-    Promise.all([
-        database.ref(`bairros_globais/${cidadeKey}/bairros`).once('value'),
-        dbRef.child('atendimento').once('value')
-    ]).then(([bairrosSnap, atendimentoSnap]) => {
-        const bairros = bairrosSnap.val() || {};
-        const atendimento = atendimentoSnap.val() || {};
-        
-        const container = document.getElementById('bairrosContainer');
-        
-        if (Object.keys(bairros).length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#999;">Nenhum bairro cadastrado nesta cidade</p>';
-            return;
-        }
-        
-        let html = `<h3 style="color:#800020; margin:20px 0;">Bairros:</h3>`;
-        
-        Object.entries(bairros).forEach(([key, bairro]) => {
-            const config = atendimento[`${cidadeKey}_${key}`] || { ativo: false, frete: 0 };
-            const ativo = config.ativo ? 'checked' : '';
-            const frete = config.frete || '';
-            
-            html += `
-                <div class="bairro-item">
-                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
-                        <input type="checkbox" id="chk_${cidadeKey}_${key}" ${ativo} onchange="toggleBairro('${cidadeKey}', '${key}', this.checked)" style="width:20px; height:20px;">
-                        <div class="bairro-info">
-                            <div class="bairro-nome">${bairro.nome}</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="color:#FFC107;">R$</span>
-                        <input type="number" id="frete_${cidadeKey}_${key}" value="${frete}" step="0.01" min="0" placeholder="Frete" 
-                               style="width:100px; padding:8px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;"
-                               ${!ativo ? 'disabled' : ''}
-                               onchange="salvarFrete('${cidadeKey}', '${key}', this.value)">
-                    </div>
+                    ` : ''}
                 </div>
             `;
         });
-        
-        container.innerHTML = html;
-    });
+    } else {
+        carnesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma carne cadastrada</p>';
+    }
+
+    // Acompanhamentos
+    const acompanhamentosDiv = document.getElementById('acompanhamentos');
+    acompanhamentosDiv.innerHTML = '';
+    if (cardapio.acompanhamentos && cardapio.acompanhamentos.length > 0) {
+        cardapio.acompanhamentos.forEach((item, index) => {
+            const visivel = visibilidadeItens[`acompanhamentos_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+            
+            const isSemArroz = item === 'Sem Arroz';
+            const valorExibir = isSemArroz ? `<span class="item-valor">R$ ${config.valorSemArroz.toFixed(2)}</span>` : '';
+            
+            acompanhamentosDiv.innerHTML += `
+                <div class="item-card ${!visivel ? 'oculto' : ''}">
+                    <input type="checkbox" value="${item}" data-categoria="acompanhamentos" data-index="${index}" onchange="validarLimites(this)">
+                    <div class="item-info">
+                        <span class="item-nome">${item}</span>
+                        ${valorExibir}
+                    </div>
+                    ${adminLogado ? `
+                        <div class="admin-controls">
+                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidade('acompanhamentos', ${index})">
+                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            <button class="btn-edit" onclick="editarItem('acompanhamentos', ${index})"><i class="fas fa-edit"></i></button>
+                            ${!isSemArroz ? `<button class="btn-delete" onclick="excluirItem('acompanhamentos', ${index})"><i class="fas fa-trash"></i></button>` : ''}
+                            ${isSemArroz && nivelAcesso === 'master' ? `
+                                <button class="btn-valor" onclick="editarValorSemArroz()"><i class="fas fa-dollar-sign"></i></button>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    } else {
+        acompanhamentosDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum acompanhamento cadastrado</p>';
+    }
+
+    // Feijões
+    const feijoesDiv = document.getElementById('feijoes');
+    feijoesDiv.innerHTML = '';
+    if (cardapio.feijoes && cardapio.feijoes.length > 0) {
+        cardapio.feijoes.forEach((item, index) => {
+            const visivel = visibilidadeItens[`feijoes_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+            
+            feijoesDiv.innerHTML += `
+                <div class="item-card ${!visivel ? 'oculto' : ''}">
+                    <input type="checkbox" value="${item}" data-categoria="feijoes" data-index="${index}" onchange="validarLimites(this)">
+                    <div class="item-info">
+                        <span class="item-nome">${item}</span>
+                    </div>
+                    ${adminLogado ? `
+                        <div class="admin-controls">
+                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidade('feijoes', ${index})">
+                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            <button class="btn-edit" onclick="editarItem('feijoes', ${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="excluirItem('feijoes', ${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    } else {
+        feijoesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum feijão cadastrado</p>';
+    }
+
+    // Saladas
+    const saladasDiv = document.getElementById('saladas');
+    saladasDiv.innerHTML = '';
+    if (cardapio.saladas && cardapio.saladas.length > 0) {
+        cardapio.saladas.forEach((item, index) => {
+            const visivel = visibilidadeItens[`saladas_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+            
+            saladasDiv.innerHTML += `
+                <div class="item-card ${!visivel ? 'oculto' : ''}">
+                    <input type="checkbox" value="${item}" data-categoria="saladas" data-index="${index}" onchange="validarLimites(this)">
+                    <div class="item-info">
+                        <span class="item-nome">${item}</span>
+                    </div>
+                    ${adminLogado ? `
+                        <div class="admin-controls">
+                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidade('saladas', ${index})">
+                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            <button class="btn-edit" onclick="editarItem('saladas', ${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="excluirItem('saladas', ${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    } else {
+        saladasDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma salada cadastrada</p>';
+    }
+
+    // Guarnições
+    const guarnicoesDiv = document.getElementById('guarnicoes');
+    guarnicoesDiv.innerHTML = '';
+    if (cardapio.guarnicoes && cardapio.guarnicoes.length > 0) {
+        cardapio.guarnicoes.forEach((item, index) => {
+            const visivel = visibilidadeItens[`guarnicoes_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+            
+            guarnicoesDiv.innerHTML += `
+                <div class="item-card ${!visivel ? 'oculto' : ''}">
+                    <input type="checkbox" value="${item}" data-categoria="guarnicoes" data-index="${index}" onchange="validarLimites(this)">
+                    <div class="item-info">
+                        <span class="item-nome">${item}</span>
+                    </div>
+                    ${adminLogado ? `
+                        <div class="admin-controls">
+                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidade('guarnicoes', ${index})">
+                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            <button class="btn-edit" onclick="editarItem('guarnicoes', ${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="excluirItem('guarnicoes', ${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    } else {
+        guarnicoesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma guarnição cadastrada</p>';
+    }
+
+    // Bebidas
+    const bebidasDiv = document.getElementById('bebidas');
+    bebidasDiv.innerHTML = '';
+    if (cardapio.bebidas && cardapio.bebidas.length > 0) {
+        cardapio.bebidas.forEach((bebida, index) => {
+            const visivel = visibilidadeItens[`bebidas_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+            
+            bebidasDiv.innerHTML += `
+                <div class="item-card ${!visivel ? 'oculto' : ''}">
+                    <input type="checkbox" value="${bebida.nome}" data-categoria="bebidas" data-index="${index}" onchange="validarLimites(this)">
+                    <div class="item-info">
+                        <span class="item-nome">${bebida.nome}</span>
+                        <span class="item-valor">R$ ${bebida.valor.toFixed(2)}</span>
+                    </div>
+                    ${adminLogado ? `
+                        <div class="admin-controls">
+                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidade('bebidas', ${index})">
+                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            ${nivelAcesso === 'master' ? `
+                                <button class="btn-edit" onclick="editarItem('bebidas', ${index})"><i class="fas fa-edit"></i></button>
+                                <button class="btn-delete" onclick="excluirItem('bebidas', ${index})"><i class="fas fa-trash"></i></button>
+                                <button class="btn-valor" onclick="editarValorBebida(${index})"><i class="fas fa-dollar-sign"></i></button>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    } else {
+        bebidasDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma bebida cadastrada</p>';
+    }
 }
+        // ===== RENDERIZAR ACRÉSCIMOS =====
+        function renderizarAcrescimos() {
+            const div = document.getElementById('acrescimos');
+            div.innerHTML = '';
+            if (acrescimos) {
+                acrescimos.forEach((item, index) => {
+                    const visivel = visibilidadeAcrescimos[`acrescimo_${index}`] !== false;
+                    if (!adminLogado && !visivel) return;
+                    
+                    div.innerHTML += `
+                        <div class="item-card ${!visivel ? 'oculto' : ''}">
+                            <input type="checkbox" value="${item.nome}" data-valor="${item.valor}" onchange="atualizarTotal()">
+                            <div class="item-info">
+                                <span class="item-nome">${item.nome}</span>
+                                <span class="item-valor">R$ ${item.valor.toFixed(2)}</span>
+                            </div>
+                            ${adminLogado ? `
+                                <div class="admin-controls">
+                                    <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidadeAcrescimo(${index})">
+                                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                                    </button>
+                                    ${nivelAcesso === 'master' ? `
+                                        <button class="btn-edit" onclick="editarAcrescimo(${index})"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-delete" onclick="excluirAcrescimo(${index})"><i class="fas fa-trash"></i></button>
+                                        <button class="btn-valor" onclick="editarValorAcrescimo(${index})"><i class="fas fa-dollar-sign"></i></button>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+        }
 
-        
+        // ===== FUNÇÕES ADMIN =====
+        function toggleVisibilidade(categoria, index) {
+            if (!adminLogado) return;
+            const chave = `${categoria}_${index}`;
+            visibilidadeItens[chave] = !visibilidadeItens[chave];
+            dbRef.child('visibilidade').set(visibilidadeItens);
+            renderizarCardapio();
+        }
 
-        // ===== INICIAR =====
-        window.onload = function() {
-            document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
+        function toggleVisibilidadeAcrescimo(index) {
+            if (!adminLogado) return;
+            visibilidadeAcrescimos[`acrescimo_${index}`] = !visibilidadeAcrescimos[`acrescimo_${index}`];
+            dbRef.child('visibilidadeAcrescimos').set(visibilidadeAcrescimos);
+            renderizarAcrescimos();
+        }
+
+        function adicionarItem(categoria) {
+            if (!adminLogado) return;
             
-            iniciarListenerUnico();
-            
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    fecharModal('modalLogin');
-                    fecharModal('modalBairros');
-                    fecharModal('modalDetalhes');
+            if (categoria === 'bebidas') {
+                const nome = prompt('Nome da bebida:');
+                if (!nome) return;
+                const valor = parseFloat(prompt('Valor (R$):', '5.00'));
+                if (isNaN(valor)) return;
+                cardapio.bebidas.push({ nome: nome.trim(), valor: valor });
+            } else {
+                const novoItem = prompt(`Novo item para ${categoria}:`);
+                if (novoItem && novoItem.trim()) {
+                    if (!cardapio[categoria]) cardapio[categoria] = [];
+                    cardapio[categoria].push(novoItem.trim());
                 }
+            }
+            dbRef.child('cardapio').set(cardapio);
+        }
+
+        function adicionarAcrescimo() {
+            if (!adminLogado || nivelAcesso !== 'master') return;
+            const nome = prompt('Nome do acréscimo:');
+            if (!nome) return;
+            const valor = parseFloat(prompt('Valor (R$):', '2.00'));
+            if (isNaN(valor)) return;
+            acrescimos.push({ nome: nome.trim(), valor: valor });
+            dbRef.child('acrescimos').set(acrescimos);
+        }
+
+        function editarItem(categoria, index) {
+            if (!adminLogado) return;
+            
+            if (categoria === 'bebidas') {
+                const novoNome = prompt('Editar nome:', cardapio.bebidas[index].nome);
+                if (novoNome && novoNome.trim()) {
+                    cardapio.bebidas[index].nome = novoNome.trim();
+                }
+            } else {
+                const novoNome = prompt('Editar item:', cardapio[categoria][index]);
+                if (novoNome && novoNome.trim()) {
+                    cardapio[categoria][index] = novoNome.trim();
+                }
+            }
+            dbRef.child('cardapio').set(cardapio);
+        }
+
+        function editarValorBebida(index) {
+            if (nivelAcesso !== 'master') return;
+            const novoValor = parseFloat(prompt('Novo valor (R$):', cardapio.bebidas[index].valor));
+            if (!isNaN(novoValor) && novoValor >= 0) {
+                cardapio.bebidas[index].valor = novoValor;
+                dbRef.child('cardapio').set(cardapio);
+            }
+        }
+
+        function editarAcrescimo(index) {
+            if (!adminLogado || nivelAcesso !== 'master') return;
+            const novoNome = prompt('Editar nome:', acrescimos[index].nome);
+            if (novoNome && novoNome.trim()) {
+                acrescimos[index].nome = novoNome.trim();
+                dbRef.child('acrescimos').set(acrescimos);
+            }
+        }
+
+        function editarValorAcrescimo(index) {
+            if (nivelAcesso !== 'master') return;
+            const novoValor = parseFloat(prompt('Novo valor (R$):', acrescimos[index].valor));
+            if (!isNaN(novoValor) && novoValor >= 0) {
+                acrescimos[index].valor = novoValor;
+                dbRef.child('acrescimos').set(acrescimos);
+            }
+        }
+
+        function editarValorSemArroz() {
+            if (nivelAcesso !== 'master') return;
+            const novoValor = parseFloat(prompt('Novo valor "Sem Arroz" (R$):', config.valorSemArroz));
+            if (!isNaN(novoValor) && novoValor >= 0) {
+                config.valorSemArroz = novoValor;
+                dbRef.child('config/valorSemArroz').set(novoValor);
+                renderizarCardapio();
+            }
+        }
+
+        function excluirItem(categoria, index) {
+            if (!adminLogado) return;
+            
+            if (categoria === 'acompanhamentos' && cardapio.acompanhamentos[index] === 'Sem Arroz') {
+                alert('"Sem Arroz" não pode ser excluído!');
+                return;
+            }
+            
+            if (confirm('Excluir este item?')) {
+                cardapio[categoria].splice(index, 1);
+                dbRef.child('cardapio').set(cardapio);
+            }
+        }
+
+        function excluirAcrescimo(index) {
+            if (!adminLogado || nivelAcesso !== 'master') return;
+            if (confirm('Excluir este acréscimo?')) {
+                acrescimos.splice(index, 1);
+                dbRef.child('acrescimos').set(acrescimos);
+            }
+        }
+
+        // ===== LOGIN =====
+        function abrirModalLogin() {
+            document.getElementById('loginModal').style.display = 'flex';
+            document.getElementById('senhaInput').value = '';
+            document.getElementById('erroLogin').style.display = 'none';
+            setTimeout(() => {
+                document.getElementById('senhaInput').focus();
+            }, 300);
+        }
+
+        function fecharModalLogin() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function verificarSenha() {
+            const senha = document.getElementById('senhaInput').value;
+            
+            if (senha === senhaMaster) {
+                adminLogado = true;
+                nivelAcesso = 'master';
+                document.getElementById('loginBtn').classList.add('admin-mode');
+                document.getElementById('loginBtn').innerHTML = '👤 Master (Logado)';
+                fecharModalLogin();
+                atualizarInterfaceAdmin();
+            } else if (senha === senhaView) {
+                adminLogado = true;
+                nivelAcesso = 'view';
+                document.getElementById('loginBtn').classList.add('view-mode');
+                document.getElementById('loginBtn').innerHTML = '👤 Visualização (Logado)';
+                fecharModalLogin();
+                atualizarInterfaceAdmin();
+            } else {
+                document.getElementById('erroLogin').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            adminLogado = false;
+            nivelAcesso = null;
+            document.getElementById('loginBtn').classList.remove('admin-mode', 'view-mode');
+            document.getElementById('loginBtn').innerHTML = '👤 Área Admin';
+            document.getElementById('loginBtn').onclick = abrirModalLogin;
+            atualizarInterfaceAdmin();
+        }
+
+        function atualizarInterfaceAdmin() {
+            const adminMessage = document.getElementById('adminMessage');
+            const botoesAdd = document.querySelectorAll('.btn-add-item');
+            
+            if (adminLogado) {
+                adminMessage.style.display = 'block';
+                if (nivelAcesso === 'master') {
+                    adminMessage.innerHTML = '✅ Modo Master - Acesso total';
+                    document.getElementById('valorPrato').disabled = false;
+                    document.getElementById('horaAbre').disabled = false;
+                    document.getElementById('horaFecha').disabled = false;
+                    
+                    botoesAdd.forEach(botao => {
+                        botao.style.display = 'inline-flex';
+                    });
+                } else {
+                    adminMessage.innerHTML = '🌟 Modo Visualização - Pode editar cardápio';
+                    document.getElementById('valorPrato').disabled = true;
+                    document.getElementById('horaAbre').disabled = false;
+                    document.getElementById('horaFecha').disabled = false;
+                    
+                    botoesAdd.forEach(botao => {
+                        if (botao.id === 'btnAddBebidas' || botao.id === 'btnAddAcrescimo') {
+                            botao.style.display = 'none';
+                        } else {
+                            botao.style.display = 'inline-flex';
+                        }
+                    });
+                }
+                
+                document.getElementById('loginBtn').innerHTML = '👤 Sair';
+                document.getElementById('loginBtn').onclick = logout;
+            } else {
+                adminMessage.style.display = 'none';
+                document.getElementById('valorPrato').disabled = true;
+                document.getElementById('horaAbre').disabled = true;
+                document.getElementById('horaFecha').disabled = true;
+                botoesAdd.forEach(botao => botao.style.display = 'none');
+                document.getElementById('loginBtn').innerHTML = '👤 Área Admin';
+                document.getElementById('loginBtn').onclick = abrirModalLogin;
+            }
+            
+            renderizarCardapio();
+            renderizarAcrescimos();
+        }
+
+        // ===== FUNÇÃO PARA ALTERNAR ENTRE ENTREGA E RETIRADA =====
+        function toggleEntregaRetirada() {
+            const tipo = document.getElementById('tipoEntrega').value;
+            const camposEntrega = document.getElementById('camposEntrega');
+            
+            if (tipo === 'entrega') {
+                camposEntrega.style.display = 'block';
+                document.getElementById('cep').required = true;
+                document.getElementById('bairro').required = true;
+                document.getElementById('rua').required = true;
+                document.getElementById('numero').required = true;
+            } else {
+                camposEntrega.style.display = 'none';
+                document.getElementById('cep').required = false;
+                document.getElementById('bairro').required = false;
+                document.getElementById('rua').required = false;
+                document.getElementById('numero').required = false;
+            }
+            
+            atualizarTotal();
+        }
+
+        // ===== BUSCA CEP E FRETE =====
+        function buscarCep() {
+            const cep = document.getElementById('cep').value.replace(/\D/g, '');
+            
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            document.getElementById('rua').value = data.logradouro || '';
+                            document.getElementById('bairro').value = data.bairro || '';
+                            document.getElementById('cidade').value = data.localidade || '';
+                            
+                            // Se for frete por bairro, buscar valor no Firebase
+                            if (CONFIG.TIPO_FRETE === 'bairro' && data.bairro) {
+                                buscarFretePorBairro(data.bairro);
+                            }
+                        } else {
+                            alert('CEP não encontrado!');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar CEP:', error);
+                        alert('Erro ao buscar CEP. Tente novamente.');
+                    });
+            }
+        }
+
+        function buscarFretePorBairro(nomeBairro) {
+            // Converter nome do bairro para key (formato usado no Firebase)
+            const bairroKey = nomeBairro.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/\s+/g, '-');
+            
+            // Procurar no atendimento do restaurante
+            const cidadeKey = 'conselheiro-lafaiete'; // Ajuste conforme necessário
+            const chaveAtendimento = `${cidadeKey}_${bairroKey}`;
+            
+            const atendimento = atendimentoRestaurante[chaveAtendimento];
+            
+            if (atendimento && atendimento.ativo) {
+                document.getElementById('freteValor').value = `R$ ${atendimento.frete.toFixed(2)}`;
+                document.getElementById('freteValor').dataset.valor = atendimento.frete;
+            } else {
+                document.getElementById('freteValor').value = 'Bairro não atendido';
+                document.getElementById('freteValor').dataset.valor = '0';
+                alert('Este bairro não é atendido para entrega!');
+            }
+            
+            atualizarTotal();
+        }
+
+        // ===== VALIDAÇÕES =====
+        function validarLimites(checkbox) {
+            const categoria = checkbox.dataset.categoria;
+            
+            if (categoria === 'carnes') {
+                const selecionadas = document.querySelectorAll('#carnes input:checked');
+                if (selecionadas.length > 1) {
+                    alert('Selecione apenas 1 carne!');
+                    checkbox.checked = false;
+                }
+            } else if (categoria === 'feijoes') {
+                const selecionadas = document.querySelectorAll('#feijoes input:checked');
+                if (selecionadas.length > 1) {
+                    alert('Selecione apenas 1 feijão!');
+                    checkbox.checked = false;
+                }
+            } else if (categoria === 'saladas') {
+                const selecionadas = document.querySelectorAll('#saladas input:checked');
+                if (selecionadas.length > 1) {
+                    alert('Selecione apenas 1 salada!');
+                    checkbox.checked = false;
+                }
+            } else if (categoria === 'guarnicoes') {
+                const selecionadas = document.querySelectorAll('#guarnicoes input:checked');
+                if (selecionadas.length > 2) {
+                    alert('Selecione até 2 guarnições!');
+                    checkbox.checked = false;
+                }
+            }
+        }
+
+        // ===== PEDIDOS =====
+        function adicionarPrato() {
+            const prato = {
+                carnes: [],
+                acompanhamentos: [],
+                feijoes: [],
+                saladas: [],
+                guarnicoes: [],
+                bebidas: [],
+                acrescimos: [],
+                observacao: document.getElementById('observacaoPrato').value.trim()
+            };
+
+            document.querySelectorAll('#carnes input:checked').forEach(cb => prato.carnes.push(cb.value));
+            document.querySelectorAll('#acompanhamentos input:checked').forEach(cb => prato.acompanhamentos.push(cb.value));
+            document.querySelectorAll('#feijoes input:checked').forEach(cb => prato.feijoes.push(cb.value));
+            document.querySelectorAll('#saladas input:checked').forEach(cb => prato.saladas.push(cb.value));
+            document.querySelectorAll('#guarnicoes input:checked').forEach(cb => prato.guarnicoes.push(cb.value));
+            
+            document.querySelectorAll('#bebidas input:checked').forEach(cb => {
+                const bebida = cardapio.bebidas.find(b => b.nome === cb.value);
+                if (bebida) prato.bebidas.push(bebida);
             });
             
-            document.getElementById('modalLogin').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('modalLogin')) fecharModal('modalLogin');
+            document.querySelectorAll('#acrescimos input:checked').forEach(cb => {
+                const acrescimo = acrescimos.find(a => a.nome === cb.value);
+                if (acrescimo) prato.acrescimos.push(acrescimo);
             });
+
+            if (prato.acompanhamentos.length === 0) {
+                alert('Selecione pelo menos 1 acompanhamento!');
+                return;
+            }
+
+            pedidosAtuais.push(prato);
+            atualizarPainelPedidos();
             
-            document.getElementById('modalBairros').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('modalBairros')) fecharModal('modalBairros');
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('observacaoPrato').value = '';
+        }
+
+        function atualizarPainelPedidos() {
+            const lista = document.getElementById('listaPedidos');
+            lista.innerHTML = '';
+
+            let total = 0;
+            const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+
+            pedidosAtuais.forEach((prato, index) => {
+                let subtotal = valorPrato;
+
+                let acompanhamentosHTML = `<div><small>🍚 Acomp.: ${prato.acompanhamentos.join(', ')}</small></div>`;
+
+                if (prato.acompanhamentos.includes('Sem Arroz')) {
+                    acompanhamentosHTML += `<div><small style="margin-left: 20px; color: #FF9800;">   + Sem Arroz: R$ ${config.valorSemArroz.toFixed(2)}</small></div>`;
+                    subtotal += config.valorSemArroz;
+                }
+
+                let feijoesHTML = prato.feijoes.length ? `<div><small>🫘 Feijão: ${prato.feijoes.join(', ')}</small></div>` : '';
+                let saladasHTML = prato.saladas.length ? `<div><small>🥗 Salada: ${prato.saladas.join(', ')}</small></div>` : '';
+                let guarnicoesHTML = prato.guarnicoes.length ? `<div><small>🍟 Guarn.: ${prato.guarnicoes.join(', ')}</small></div>` : '';
+
+                if (prato.bebidas.length) {
+                    const bebidasTexto = prato.bebidas.map(b => `${b.nome} (R$ ${b.valor.toFixed(2)})`).join(', ');
+                    guarnicoesHTML += `<div><small>🥤 Bebidas: ${bebidasTexto}</small></div>`;
+                    prato.bebidas.forEach(b => subtotal += b.valor);
+                }
+
+                if (prato.acrescimos.length) {
+                    const acrescimosTexto = prato.acrescimos.map(a => `${a.nome} (R$ ${a.valor.toFixed(2)})`).join(', ');
+                    guarnicoesHTML += `<div><small>➕ Acréscimos: ${acrescimosTexto}</small></div>`;
+                    prato.acrescimos.forEach(a => subtotal += a.valor);
+                }
+
+                total += subtotal;
+
+                lista.innerHTML += `
+                    <div class="item-pedido" id="pedido-${index}">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button class="btn-edit-prato" onclick="editarPrato(${index})">✏️ Editar</button>
+                            <button class="btn-remove-prato" onclick="removerPrato(${index})">🗑️ Excluir</button>
+                        </div>
+                        <strong>Refeição ${index + 1}</strong>
+                        ${prato.carnes.length ? `<div><small>🥩 Carne: ${prato.carnes.join(', ')}</small></div>` : ''}
+                        ${acompanhamentosHTML}
+                        ${feijoesHTML}
+                        ${saladasHTML}
+                        ${guarnicoesHTML}
+                        ${prato.observacao ? `<div class="observacao-pedido">📝 ${prato.observacao}</div>` : ''}
+                        <div style="color: var(--cor-primaria); font-weight:bold; margin-top:10px; border-top:1px solid var(--borda); padding-top:5px;">
+                            R$ ${subtotal.toFixed(2)}
+                        </div>
+                    </div>
+                `;
             });
+
+            if (pedidosAtuais.length === 0) {
+                lista.innerHTML = 'Nenhum item adicionado';
+            }
+
+            atualizarTotal();
+        }
+
+        function removerPrato(index) {
+            if (confirm('Remover esta refeição?')) {
+                pedidosAtuais.splice(index, 1);
+                atualizarPainelPedidos();
+            }
+        }
+
+        function editarPrato(index) {
+            const prato = pedidosAtuais[index];
             
-            document.getElementById('modalDetalhes').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('modalDetalhes')) fecharModal('modalDetalhes');
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            setTimeout(() => {
+                if (prato.carnes && prato.carnes.length) {
+                    document.querySelectorAll('#carnes input[type="checkbox"]').forEach(cb => {
+                        if (prato.carnes.includes(cb.value)) cb.checked = true;
+                    });
+                }
+                
+                if (prato.acompanhamentos && prato.acompanhamentos.length) {
+                    document.querySelectorAll('#acompanhamentos input[type="checkbox"]').forEach(cb => {
+                        if (prato.acompanhamentos.includes(cb.value)) cb.checked = true;
+                    });
+                }
+                
+                if (prato.feijoes && prato.feijoes.length) {
+                    document.querySelectorAll('#feijoes input[type="checkbox"]').forEach(cb => {
+                        if (prato.feijoes.includes(cb.value)) cb.checked = true;
+                    });
+                }
+                
+                if (prato.saladas && prato.saladas.length) {
+                    document.querySelectorAll('#saladas input[type="checkbox"]').forEach(cb => {
+                        if (prato.saladas.includes(cb.value)) cb.checked = true;
+                    });
+                }
+                
+                if (prato.guarnicoes && prato.guarnicoes.length) {
+                    document.querySelectorAll('#guarnicoes input[type="checkbox"]').forEach(cb => {
+                        if (prato.guarnicoes.includes(cb.value)) cb.checked = true;
+                    });
+                }
+                
+                if (prato.bebidas && prato.bebidas.length) {
+                    document.querySelectorAll('#bebidas input[type="checkbox"]').forEach(cb => {
+                        if (prato.bebidas.some(b => b.nome === cb.value)) cb.checked = true;
+                    });
+                }
+                
+                if (prato.acrescimos && prato.acrescimos.length) {
+                    document.querySelectorAll('#acrescimos input[type="checkbox"]').forEach(cb => {
+                        if (prato.acrescimos.some(a => a.nome === cb.value)) cb.checked = true;
+                    });
+                }
+                
+                if (prato.observacao) {
+                    document.getElementById('observacaoPrato').value = prato.observacao;
+                }
+            }, 100);
+            
+            pedidosAtuais.splice(index, 1);
+            atualizarPainelPedidos();
+            
+            document.querySelector('.menu-section').scrollIntoView({ behavior: 'smooth' });
+            alert('✏️ Editando a Refeição. Faça as alterações e clique em "ADICIONAR AO PEDIDO" novamente.');
+        }
+
+        function atualizarTotal() {
+            let totalPratos = 0;
+            const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+            
+            pedidosAtuais.forEach(prato => {
+                let subtotal = valorPrato;
+                if (prato.acompanhamentos.includes('Sem Arroz')) subtotal += config.valorSemArroz;
+                prato.bebidas.forEach(b => subtotal += b.valor);
+                prato.acrescimos.forEach(a => subtotal += a.valor);
+                totalPratos += subtotal;
             });
+
+            let taxa = 0;
+            if (document.getElementById('tipoEntrega').value === 'entrega') {
+                if (CONFIG.TIPO_FRETE === 'fixo') {
+                    taxa = CONFIG.VALOR_FRETE_FIXO;
+                } else {
+                    // Pega do campo frete
+                    const freteField = document.getElementById('freteValor');
+                    if (freteField.dataset.valor) {
+                        taxa = parseFloat(freteField.dataset.valor) || 0;
+                    }
+                }
+            }
+            
+            document.getElementById('totalFinal').innerHTML = `Total: R$ ${(totalPratos + taxa).toFixed(2)}`;
+            return totalPratos + taxa;
+        }
+
+        // ===== ENDEREÇOS =====
+        function carregarEnderecosLocalStorage() {
+            const enderecosSalvos = localStorage.getItem('enderecos_' + RESTAURANTE_ID);
+            if (enderecosSalvos) {
+                try {
+                    enderecosClientes = JSON.parse(enderecosSalvos) || {};
+                } catch (e) {}
+            }
+
+            const ultimoEndereco = localStorage.getItem('ultimoEndereco_' + RESTAURANTE_ID);
+            if (ultimoEndereco) {
+                try {
+                    ultimoEnderecoSelecionado = JSON.parse(ultimoEndereco);
+                } catch (e) {}
+            }
+
+            const nomeSalvo = localStorage.getItem('ultimoNomeCliente_' + RESTAURANTE_ID);
+            if (nomeSalvo) {
+                document.getElementById('nomeCliente').value = nomeSalvo;
+                buscarEnderecosCliente();
+            }
+        }
+
+        function salvarEnderecos() {
+            localStorage.setItem('enderecos_' + RESTAURANTE_ID, JSON.stringify(enderecosClientes));
+        }
+
+        function buscarEnderecosCliente() {
+            const nome = document.getElementById('nomeCliente').value.trim();
+            const section = document.getElementById('enderecosSalvosSection');
+            
+            if (nome) {
+                localStorage.setItem('ultimoNomeCliente_' + RESTAURANTE_ID, nome);
+            }
+            
+            if (nome && enderecosClientes[nome] && enderecosClientes[nome].length > 0) {
+                section.style.display = 'block';
+                const lista = document.getElementById('enderecosList');
+                lista.innerHTML = '';
+                
+                enderecosClientes[nome].forEach((endereco, index) => {
+                    const isSelected = ultimoEnderecoSelecionado && 
+                                     endereco.rua === ultimoEnderecoSelecionado.rua &&
+                                     endereco.numero === ultimoEnderecoSelecionado.numero &&
+                                     endereco.bairro === ultimoEnderecoSelecionado.bairro;
+                    
+                    lista.innerHTML += `
+                        <div class="endereco-item ${isSelected ? 'selected' : ''}" onclick="selecionarEndereco(${index})">
+                            <strong>${endereco.rua}, ${endereco.numero}</strong>
+                            ${endereco.complemento ? ` - ${endereco.complemento}` : ''}
+                            <br><small>${endereco.bairro} - ${endereco.cidade} ${endereco.referencia ? `- Ref: ${endereco.referencia}` : ''}</small>
+                        </div>
+                    `;
+                });
+                
+                if (ultimoEnderecoSelecionado) {
+                    document.getElementById('cep').value = ultimoEnderecoSelecionado.cep || '';
+                    document.getElementById('cidade').value = ultimoEnderecoSelecionado.cidade || '';
+                    document.getElementById('rua').value = ultimoEnderecoSelecionado.rua || '';
+                    document.getElementById('numero').value = ultimoEnderecoSelecionado.numero || '';
+                    document.getElementById('complemento').value = ultimoEnderecoSelecionado.complemento || '';
+                    document.getElementById('bairro').value = ultimoEnderecoSelecionado.bairro || '';
+                    document.getElementById('referencia').value = ultimoEnderecoSelecionado.referencia || '';
+                    
+                    if (CONFIG.TIPO_FRETE === 'bairro' && ultimoEnderecoSelecionado.bairro) {
+                        buscarFretePorBairro(ultimoEnderecoSelecionado.bairro);
+                    }
+                }
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        function selecionarEndereco(index) {
+            const nome = document.getElementById('nomeCliente').value.trim();
+            if (!nome || !enderecosClientes[nome]) return;
+            
+            const endereco = enderecosClientes[nome][index];
+            
+            document.getElementById('telefone').value = endereco.telefone || '';
+            document.getElementById('cep').value = endereco.cep || '';
+            document.getElementById('cidade').value = endereco.cidade || '';
+            document.getElementById('rua').value = endereco.rua || '';
+            document.getElementById('numero').value = endereco.numero || '';
+            document.getElementById('complemento').value = endereco.complemento || '';
+            document.getElementById('bairro').value = endereco.bairro || '';
+            document.getElementById('referencia').value = endereco.referencia || '';
+            
+            if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
+                buscarFretePorBairro(endereco.bairro);
+            }
+            
+            ultimoEnderecoSelecionado = endereco;
+            localStorage.setItem('ultimoEndereco_' + RESTAURANTE_ID, JSON.stringify(endereco));
+            
+            document.querySelectorAll('.endereco-item').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        function salvarEndereco() {
+            const nome = document.getElementById('nomeCliente').value.trim();
+            if (!nome) {
+                alert('Digite o nome do cliente primeiro!');
+                return;
+            }
+            
+            const telefone = document.getElementById('telefone').value.trim();
+            const cep = document.getElementById('cep').value.trim();
+            const cidade = document.getElementById('cidade').value.trim();
+            const rua = document.getElementById('rua').value.trim();
+            const numero = document.getElementById('numero').value.trim();
+            const bairro = document.getElementById('bairro').value.trim();
+            
+            if (!telefone) {
+                alert('Digite o telefone para contato!');
+                return;
+            }
+            
+            if (!rua || !numero || !bairro) {
+                alert('Preencha rua, número e bairro!');
+                return;
+            }
+            
+            const novoEndereco = {
+                telefone: telefone,
+                cep: cep,
+                cidade: cidade,
+                rua: rua,
+                numero: numero,
+                complemento: document.getElementById('complemento').value.trim(),
+                bairro: bairro,
+                referencia: document.getElementById('referencia').value.trim()
+            };
+            
+            if (!enderecosClientes[nome]) {
+                enderecosClientes[nome] = [];
+            }
+            
+            const existe = enderecosClientes[nome].some(e => 
+                e.rua === novoEndereco.rua && 
+                e.numero === novoEndereco.numero && 
+                e.bairro === novoEndereco.bairro
+            );
+            
+            if (!existe) {
+                enderecosClientes[nome].push(novoEndereco);
+                salvarEnderecos();
+                
+                ultimoEnderecoSelecionado = novoEndereco;
+                localStorage.setItem('ultimoEndereco_' + RESTAURANTE_ID, JSON.stringify(novoEndereco));
+                
+                alert('Endereço salvo!');
+                buscarEnderecosCliente();
+            } else {
+                alert('Endereço já salvo!');
+            }
+        }
+
+        // ===== GERAR MENSAGEM WHATSAPP =====
+        function gerarMensagemWhatsApp() {
+            const nome = document.getElementById('nomeCliente').value;
+            let mensagem = `🍽️ *NOVO PEDIDO - ${document.getElementById('nomeRestaurante').textContent}* 🍽️\n\n`;
+            mensagem += `👤 *Cliente:* ${nome}\n`;
+            
+            if (document.getElementById('tipoEntrega').value === 'entrega') {
+                mensagem += `📍 *Endereço:* ${document.getElementById('rua').value}, ${document.getElementById('numero').value}`;
+                if (document.getElementById('complemento').value) {
+                    mensagem += ` - ${document.getElementById('complemento').value}`;
+                }
+                mensagem += `\n🏘️ *Bairro:* ${document.getElementById('bairro').value}`;
+                mensagem += `\n🏙️ *Cidade:* ${document.getElementById('cidade').value}`;
+            } else {
+                mensagem += `🏃 *Retirada no local*\n`;
+            }
+
+            mensagem += `\n💳 *Pagamento:* ${document.getElementById('pagamento').value.toUpperCase()}`;
+            
+            if (document.getElementById('pagamento').value === 'dinheiro' && document.getElementById('trocoValor').value) {
+                mensagem += `\n💰 *Troco:* R$ ${parseFloat(document.getElementById('trocoValor').value).toFixed(2)}`;
+            }
+
+            mensagem += `\n\n📋 *ITENS:*\n`;
+            
+            const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+            let totalPratos = 0;
+
+            pedidosAtuais.forEach((prato, idx) => {
+                let subtotalItem = valorPrato;
+                
+                mensagem += `\n━━━━━━ *REFEIÇÃO ${idx + 1}* ━━━━━━\n`;
+                mensagem += `🥩 Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
+                mensagem += `🍚 Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
+                
+                if (prato.acompanhamentos.includes('Sem Arroz')) {
+                    mensagem += `   └─ + Sem Arroz: R$ ${config.valorSemArroz.toFixed(2)}\n`;
+                    subtotalItem += config.valorSemArroz;
+                }
+                
+                if (prato.feijoes.length) mensagem += `🫘 Feijão: ${prato.feijoes.join(', ')}\n`;
+                if (prato.saladas.length) mensagem += `🥗 Salada: ${prato.saladas.join(', ')}\n`;
+                if (prato.guarnicoes.length) mensagem += `🍟 Guarn.: ${prato.guarnicoes.join(', ')}\n`;
+                
+                if (prato.bebidas.length) {
+                    prato.bebidas.forEach(b => {
+                        mensagem += `🥤 ${b.nome}: R$ ${b.valor.toFixed(2)}\n`;
+                        subtotalItem += b.valor;
+                    });
+                }
+                
+                if (prato.acrescimos.length) {
+                    prato.acrescimos.forEach(a => {
+                        mensagem += `➕ ${a.nome}: R$ ${a.valor.toFixed(2)}\n`;
+                        subtotalItem += a.valor;
+                    });
+                }
+                
+                if (prato.observacao) {
+                    mensagem += `📝 Obs: ${prato.observacao}\n`;
+                }
+                
+                mensagem += `┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅\n`;
+                mensagem += `💵 *Subtotal Refeição ${idx + 1}: R$ ${subtotalItem.toFixed(2)}*\n`;
+                
+                totalPratos += subtotalItem;
+            });
+
+            let taxa = 0;
+            if (document.getElementById('tipoEntrega').value === 'entrega') {
+                if (CONFIG.TIPO_FRETE === 'fixo') {
+                    taxa = CONFIG.VALOR_FRETE_FIXO;
+                } else {
+                    taxa = parseFloat(document.getElementById('freteValor').dataset.valor) || 0;
+                }
+            }
+
+            mensagem += `\n━━━━━━ *TOTAL DO PEDIDO* ━━━━━━\n`;
+            mensagem += `💰 *TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}*`;
+            
+            return mensagem;
+        }
+
+        // ===== ENVIAR WHATSAPP =====
+        function enviarWhatsApp() {
+            if (pedidosAtuais.length === 0) {
+                alert('Adicione pelo menos uma Refeição!');
+                return;
+            }
+
+            const nome = document.getElementById('nomeCliente').value;
+            if (!nome) {
+                alert('Digite seu nome!');
+                return;
+            }
+
+            if (document.getElementById('tipoEntrega').value === 'entrega') {
+                if (!document.getElementById('bairro').value) {
+                    alert('Preencha o bairro para entrega!');
+                    return;
+                }
+                if (!document.getElementById('rua').value) {
+                    alert('Preencha a rua para entrega!');
+                    return;
+                }
+                if (!document.getElementById('numero').value) {
+                    alert('Preencha o número para entrega!');
+                    return;
+                }
+            }
+
+            const numeroPedido = Math.floor(Math.random() * 10000);
+            
+            const mensagem = gerarMensagemWhatsApp();
+            window.open(`https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`, '_blank');
+
+            const pedidoId = 'pedido_' + Date.now();
+            const pedidoData = {
+                numero: numeroPedido,
+                data: new Date().toISOString(),
+                dataFormatada: new Date().toLocaleString('pt-BR'),
+                cliente: {
+                    nome: nome,
+                    telefone: document.getElementById('telefone').value,
+                    endereco: {
+                        rua: document.getElementById('rua').value,
+                        numero: document.getElementById('numero').value,
+                        complemento: document.getElementById('complemento').value,
+                        bairro: document.getElementById('bairro').value,
+                        cidade: document.getElementById('cidade').value,
+                        cep: document.getElementById('cep').value,
+                        referencia: document.getElementById('referencia').value
+                    }
+                },
+                itens: pedidosAtuais,
+                total: calcularTotal(),
+                taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 
+                    (CONFIG.TIPO_FRETE === 'fixo' ? CONFIG.VALOR_FRETE_FIXO : parseFloat(document.getElementById('freteValor').dataset.valor) || 0) : 0,
+                pagamento: document.getElementById('pagamento').value,
+                troco: document.getElementById('trocoValor').value || null,
+                tipoEntrega: document.getElementById('tipoEntrega').value,
+                status: 'novo'
+            };
+
+            dbRef.child('pedidos/' + pedidoId).set(pedidoData)
+                .then(() => {
+                    alert('Pedido enviado!');
+                    pedidosAtuais = [];
+                    atualizarPainelPedidos();
+                })
+                .catch(error => console.error('Erro:', error));
+        }
+
+        // ===== FUNÇÕES AUXILIARES =====
+        function toggleTroco() {
+            document.getElementById('trocoDiv').style.display = 
+                document.getElementById('pagamento').value === 'dinheiro' ? 'block' : 'none';
+        }
+
+        function verificarHorario() {
+            const agora = new Date();
+            const horaAtual = agora.getHours() * 60 + agora.getMinutes();
+    
+            const [hAbre, mAbre] = document.getElementById('horaAbre').value.split(':').map(Number);
+            const [hFecha, mFecha] = document.getElementById('horaFecha').value.split(':').map(Number);
+    
+            const abertura = hAbre * 60 + mAbre;
+            const fechamento = hFecha * 60 + mFecha;
+    
+            let aberto = false;
+    
+            if (fechamento > abertura) {
+                aberto = (horaAtual >= abertura && horaAtual <= fechamento);
+            } else {
+                aberto = (horaAtual >= abertura || horaAtual <= fechamento);
+            }
+
+            const statusDiv = document.getElementById('statusHorario');
+            const btnWhats = document.getElementById('btnWhatsApp');
+
+            if (aberto) {
+                statusDiv.innerHTML = '🟢 ABERTO - Aceitando pedidos';
+                statusDiv.className = 'horario-status aberto';
+                btnWhats.disabled = false;
+            } else {
+                statusDiv.innerHTML = '🔴 FECHADO - Fora do horário';
+                statusDiv.className = 'horario-status fechado';
+                btnWhats.disabled = true;
+            }
+        }
+
+        function atualizarData() {
+            const data = new Date();
+            const dia = String(data.getDate()).padStart(2, '0');
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const ano = data.getFullYear();
+            document.getElementById('dataMenu').innerHTML = `📅 ${dia}/${mes}/${ano}`;
+        }
+
+        // ===== EVENT LISTENERS =====
+        document.getElementById('horaAbre').addEventListener('change', function() {
+            if (!adminLogado) {
+                alert('⚠️ Você precisa estar logado como Admin para alterar o horário!');
+                this.value = config.horaAbre;
+                return;
+            }
+            
+            config.horaAbre = this.value;
+            dbRef.child('config/horaAbre').set(this.value)
+                .then(() => verificarHorario())
+                .catch(error => {
+                    console.error('Erro ao salvar horário:', error);
+                    this.value = config.horaAbre;
+                });
+        });
+
+        document.getElementById('horaFecha').addEventListener('change', function() {
+            if (!adminLogado) {
+                alert('⚠️ Você precisa estar logado como Admin para alterar o horário!');
+                this.value = config.horaFecha;
+                return;
+            }
+            
+            config.horaFecha = this.value;
+            dbRef.child('config/horaFecha').set(this.value)
+                .then(() => verificarHorario())
+                .catch(error => {
+                    console.error('Erro ao salvar horário:', error);
+                    this.value = config.horaFecha;
+                });
+        });
+
+        document.getElementById('valorPrato').addEventListener('change', function() {
+            if (nivelAcesso !== 'master') {
+                alert('Apenas o Master pode alterar o valor do prato!');
+                this.value = config.valorPrato;
+                return;
+            }
+            
+            config.valorPrato = parseFloat(this.value) || 0;
+            dbRef.child('config/valorPrato').set(config.valorPrato)
+                .then(() => atualizarTotal())
+                .catch(error => {
+                    console.error('Erro ao salvar valor:', error);
+                    this.value = config.valorPrato;
+                });
+        });
+
+        // ===== WINDOW ONLOAD =====
+        window.onload = function() {
+            carregarDados();
+            carregarEnderecosLocalStorage();
+            atualizarData();
+            verificarHorario();
+            atualizarInterfaceAdmin();
+            toggleEntregaRetirada(); // Inicializar com entrega visível
+            
+            // Configurar campo de frete inicial
+            if (CONFIG.TIPO_FRETE === 'fixo') {
+                document.getElementById('freteValor').value = `R$ ${CONFIG.VALOR_FRETE_FIXO.toFixed(2)}`;
+                document.getElementById('freteValor').dataset.valor = CONFIG.VALOR_FRETE_FIXO;
+            }
         };
     </script>
 </body>
