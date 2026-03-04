@@ -441,7 +441,7 @@
         </div>
     </div>
 
-        <!-- MODAL CONFIG BAIRROS -->
+    <!-- MODAL CONFIG BAIRROS -->
     <div class="modal" id="modalBairros">
         <div class="modal-content">
             <h2 style="color: #800020; margin-bottom: 20px;">🏘️ Configurar Bairros Atendidos</h2>
@@ -564,7 +564,7 @@
                 // Tenta carregar do formato ANTIGO (bairros)
                 if (data.bairros) {
                     todosBairros = data.bairros;
-}
+                }
                 // Tenta carregar do formato NOVO (atendimento)
                 else if (data.atendimento) {
                     // Converte atendimento para o formato que o painel espera
@@ -576,9 +576,9 @@
                         todosBairros[bairroKey] = {
                             nome: bairroKey.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
                             frete: valor.frete
-        };
-    });
-}
+                        };
+                    });
+                }
                 
                 // Carregar pedidos
                 if (data.pedidos) {
@@ -645,126 +645,141 @@
             
             renderizarPedidos(resultado);
         }
-function renderizarPedidos(pedidos) {
-    console.log('📦 Renderizando pedidos:', pedidos);
-    console.log('🏘️ Bairros carregados:', todosBairros);
-    
-  
-}
- pedidos.forEach(pedido => {
-    console.log('🔍 Processando pedido:', pedido.id);
-    console.log('   Bairro do pedido:', pedido.cliente?.bairro);
-    console.log('   todosBairros:', todosBairros);
-    
-    const cacheKey = `${pedido.id}_${pedido.status}`;
 
-    if (templateCache.has(cacheKey)) {
-        fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
-        return;
-    }
+        // ===== RENDERIZAR PEDIDOS =====
+        function renderizarPedidos(pedidos) {
+            console.log('📦 Renderizando pedidos:', pedidos);
+            console.log('🏘️ Bairros carregados:', todosBairros);
+            
+            const grid = document.getElementById('pedidosGrid');
+            
+            if (pedidos.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido encontrado</p>';
+                return;
+            }
 
-    const statusClass = pedido.status || 'novo';
-    const statusText = {
-        'novo': '🟢 NOVO',
-        'preparando': '🟡 PREPARANDO',
-        'saiu': '🔵 SAIU',
-        'entregue': '✅ ENTREGUE',
-        'cancelado': '❌ CANCELADO'
-    }[statusClass] || '🟢 NOVO';
+            const fragment = document.createDocumentFragment();
+            const template = document.createElement('template');
 
-    const dataPedido = new Date(pedido.data);
-    const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            pedidos.forEach(pedido => {
+                console.log('🔍 Processando pedido:', pedido.id);
+                console.log('   Bairro do pedido:', pedido.cliente?.bairro);
+                console.log('   todosBairros:', todosBairros);
+                
+                const cacheKey = `${pedido.id}_${pedido.status}`;
 
-    // Processar bairro (versão simplificada)
-    let bairroHTML = '';
-    if (pedido.cliente?.bairro) {
-        let nomeBairro = pedido.cliente.bairro;
+                if (templateCache.has(cacheKey)) {
+                    fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
+                    return;
+                }
 
-        // Se for objeto (formato antigo), pega a propriedade nome
-        if (typeof nomeBairro === 'object' && nomeBairro.nome) {
-            nomeBairro = nomeBairro.nome;
+                const statusClass = pedido.status || 'novo';
+                const statusText = {
+                    'novo': '🟢 NOVO',
+                    'preparando': '🟡 PREPARANDO',
+                    'saiu': '🔵 SAIU',
+                    'entregue': '✅ ENTREGUE',
+                    'cancelado': '❌ CANCELADO'
+                }[statusClass] || '🟢 NOVO';
+
+                const dataPedido = new Date(pedido.data);
+                const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                // Processar bairro (versão simplificada)
+                let bairroHTML = '';
+                if (pedido.cliente?.bairro) {
+                    let nomeBairro = pedido.cliente.bairro;
+
+                    // Se for objeto (formato antigo), pega a propriedade nome
+                    if (typeof nomeBairro === 'object' && nomeBairro.nome) {
+                        nomeBairro = nomeBairro.nome;
+                    }
+
+                    // Mostra direto sem tentar encontrar
+                    bairroHTML = `<div><i class="fas fa-map-marker-alt"></i> ${nomeBairro}</div>`;
+
+                    // Se tiver frete no pedido, mostra também
+                    if (pedido.frete) {
+                        bairroHTML += `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>`;
+                    }
+                }
+
+                const html = `
+                    <div class="pedido-card ${statusClass}">
+                        <div class="pedido-header">
+                            <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
+                            <span class="pedido-status status-${statusClass}">${statusText}</span>
+                        </div>
+
+                        <div class="pedido-cliente">
+                            <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
+                        </div>
+
+                        <div class="pedido-info">
+                            <div><i class="far fa-clock"></i> ${horaFormatada}</div>
+                            <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
+                            <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
+                            <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
+                            ${bairroHTML}
+                        </div>
+
+                        ${pedido.frete && !bairroHTML.includes('Frete') ? `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>` : ''}
+
+                        <div class="pedido-total">
+                            R$ ${(pedido.total || 0).toFixed(2)}
+                        </div>
+
+                        <div class="pedido-acoes">
+                            ${statusClass !== 'entregue' && statusClass !== 'cancelado' ? `
+                                ${statusClass === 'novo' ? `
+                                    <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
+                                        <i class="fas fa-utensils"></i> PREPARAR
+                                    </button>
+                                ` : ''}
+
+                                ${statusClass === 'preparando' ? `
+                                    <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
+                                        <i class="fas fa-motorcycle"></i> SAIU
+                                    </button>
+                                ` : ''}
+
+                                ${statusClass === 'saiu' ? `
+                                    <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
+                                        <i class="fas fa-check"></i> ENTREGUE
+                                    </button>
+                                ` : ''}
+
+                                <button class="btn-acao btn-cancelar" onclick="atualizarStatus('${pedido.id}', 'cancelado')">
+                                    <i class="fas fa-times"></i> CANCELAR
+                                </button>
+                            ` : ''}
+
+                            <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </button>
+
+                            <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
+                                <i class="fas fa-print"></i> IMPRIMIR
+                            </button>
+
+                            <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
+                                <i class="fas fa-eye"></i> DETALHES
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                template.innerHTML = html.trim();
+                const card = template.content.firstChild;
+
+                templateCache.set(cacheKey, card.cloneNode(true));
+                fragment.appendChild(card);
+            });
+
+            grid.innerHTML = '';
+            grid.appendChild(fragment);
         }
 
-        // Mostra direto sem tentar encontrar
-        bairroHTML = `<div><i class="fas fa-map-marker-alt"></i> ${nomeBairro}</div>`;
-
-        // Se tiver frete no pedido, mostra também
-        if (pedido.frete) {
-            bairroHTML += `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>`;
-        }
-    }
-
-    const html = `
-        <div class="pedido-card ${statusClass}">
-            <div class="pedido-header">
-                <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
-                <span class="pedido-status status-${statusClass}">${statusText}</span>
-            </div>
-
-            <div class="pedido-cliente">
-                <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
-            </div>
-
-            <div class="pedido-info">
-                <div><i class="far fa-clock"></i> ${horaFormatada}</div>
-                <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
-                <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
-                <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
-                ${bairroHTML}
-            </div>
-
-            ${pedido.frete && !bairroHTML.includes('Frete') ? `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>` : ''}
-
-            <div class="pedido-total">
-                R$ ${(pedido.total || 0).toFixed(2)}
-            </div>
-
-            <div class="pedido-acoes">
-                ${statusClass !== 'entregue' && statusClass !== 'cancelado' ? `
-                    ${statusClass === 'novo' ? `
-                        <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
-                            <i class="fas fa-utensils"></i> PREPARAR
-                        </button>
-                    ` : ''}
-
-                    ${statusClass === 'preparando' ? `
-                        <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
-                            <i class="fas fa-motorcycle"></i> SAIU
-                        </button>
-                    ` : ''}
-
-                    ${statusClass === 'saiu' ? `
-                        <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
-                            <i class="fas fa-check"></i> ENTREGUE
-                        </button>
-                    ` : ''}
-
-                    <button class="btn-acao btn-cancelar" onclick="atualizarStatus('${pedido.id}', 'cancelado')">
-                        <i class="fas fa-times"></i> CANCELAR
-                    </button>
-                ` : ''}
-
-                <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
-                    <i class="fab fa-whatsapp"></i> WhatsApp
-                </button>
-
-                <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
-                    <i class="fas fa-print"></i> IMPRIMIR
-                </button>
-
-                <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
-                    <i class="fas fa-eye"></i> DETALHES
-                </button>
-            </div>
-        </div>
-    `;
-
-    template.innerHTML = html.trim();
-    const card = template.content.firstChild;
-
-    templateCache.set(cacheKey, card.cloneNode(true));
-    fragment.appendChild(card);
-});
         // ===== ATUALIZAR STATUS =====
         function atualizarStatus(pedidoId, novoStatus) {
             dbRef.child('pedidos/' + pedidoId + '/status').set(novoStatus)
@@ -849,8 +864,7 @@ function renderizarPedidos(pedidos) {
                     <div class="linha"></div>
                     
                     <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
-                    ${pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro] ? 
-                        `<p><strong>Bairro:</strong> ${todosBairros[pedido.cliente.bairro].nome}</p>` : ''}
+                    ${pedido.cliente?.bairro ? `<p><strong>Bairro:</strong> ${typeof pedido.cliente.bairro === 'object' ? pedido.cliente.bairro.nome : pedido.cliente.bairro}</p>` : ''}
                     <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
                     
                     <div class="linha"></div>
@@ -933,8 +947,12 @@ function renderizarPedidos(pedidos) {
             html += `<tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>`;
             html += `<tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>`;
             
-            if (pedido.cliente?.bairro && todosBairros[pedido.cliente.bairro]) {
-                html += `<tr><td>Bairro:</td><td>${todosBairros[pedido.cliente.bairro].nome} (Frete: R$ ${todosBairros[pedido.cliente.bairro].frete.toFixed(2)})</td></tr>`;
+            if (pedido.cliente?.bairro) {
+                let nomeBairro = pedido.cliente.bairro;
+                if (typeof nomeBairro === 'object' && nomeBairro.nome) {
+                    nomeBairro = nomeBairro.nome;
+                }
+                html += `<tr><td>Bairro:</td><td>${nomeBairro}</td></tr>`;
             }
             
             if (pedido.cliente?.endereco) {
@@ -984,132 +1002,131 @@ function renderizarPedidos(pedidos) {
             document.getElementById(modalId).style.display = 'none';
         }
 
-// ===== VERIFICAR LOGIN =====
-function verificarLogin() {
-    const senhaDigitada = document.getElementById('senhaAdmin').value;
-    
-    dbRef.child('info/senha_master').once('value', (snapshot) => {  // ← Mudado de 'senhaAdmin' para 'senha_master'
-        const senhaCorreta = snapshot.val();
-        
-        if (senhaDigitada === senhaCorreta) {
-            adminLogado = true;
-            document.getElementById('adminBtn').classList.add('ativo');
-            fecharModal('modalLogin');
-            abrirModalBairros();
-        } else {
-            alert('Senha incorreta!');
-        }
-    });
-}
-        // ===== CARREGAR CIDADES E BAIRROS =====
-function carregarBairros() {
-    const lista = document.getElementById('bairrosLista');
-    
-    // Busca cidades GLOBAIS
-    database.ref('bairros_globais').once('value', (snapshot) => {
-        const cidades = snapshot.val() || {};
-        
-        if (Object.keys(cidades).length === 0) {
-            lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma cidade cadastrada</p>';
-            return;
-        }
-
-        let html = `
-            <div style="margin-bottom:20px;">
-                <label style="color:#800020; font-weight:600;">Selecione a cidade:</label>
-                <select id="seletorCidade" onchange="mudarCidade()" style="width:100%; padding:12px; margin-top:5px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;">
-        `;
-        
-        Object.entries(cidades).forEach(([key, cidade]) => {
-            html += `<option value="${key}">${cidade.nome}</option>`;
-        });
-        
-        html += `</select></div>`;
-        html += `<div id="bairrosContainer"></div>`;
-        
-        lista.innerHTML = html;
-        
-        // Carrega bairros da primeira cidade
-        mudarCidade();
-    });
-}
-// ===== FUNÇÕES AUXILIARES =====
-function toggleBairro(cidadeKey, bairroKey, ativo) {
-    const inputFrete = document.getElementById(`frete_${cidadeKey}_${bairroKey}`);
-    inputFrete.disabled = !ativo;
-    
-    if (ativo) {
-        inputFrete.focus();
-    } else {
-        // Se desativou, remove
-        dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).remove();
-    }
-}
-
-function salvarFrete(cidadeKey, bairroKey, valor) {
-    const frete = parseFloat(valor);
-    if (isNaN(frete) || frete < 0) return;
-    
-    dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).set({
-        cidade: cidadeKey,
-        bairro: bairroKey,
-        ativo: true,
-        frete: frete
-    }).then(() => {
-        // Feedback visual opcional
-        console.log('Frete salvo!');
-    });
-}
-
-// ===== MUDAR CIDADE =====
-function mudarCidade() {
-    const cidadeKey = document.getElementById('seletorCidade').value;
-    
-    Promise.all([
-        database.ref(`bairros_globais/${cidadeKey}/bairros`).once('value'),
-        dbRef.child('atendimento').once('value')
-    ]).then(([bairrosSnap, atendimentoSnap]) => {
-        const bairros = bairrosSnap.val() || {};
-        const atendimento = atendimentoSnap.val() || {};
-        
-        const container = document.getElementById('bairrosContainer');
-        
-        if (Object.keys(bairros).length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#999;">Nenhum bairro cadastrado nesta cidade</p>';
-            return;
-        }
-        
-        let html = `<h3 style="color:#800020; margin:20px 0;">Bairros:</h3>`;
-        
-        Object.entries(bairros).forEach(([key, bairro]) => {
-            const config = atendimento[`${cidadeKey}_${key}`] || { ativo: false, frete: 0 };
-            const ativo = config.ativo ? 'checked' : '';
-            const frete = config.frete || '';
+        // ===== VERIFICAR LOGIN =====
+        function verificarLogin() {
+            const senhaDigitada = document.getElementById('senhaAdmin').value;
             
-            html += `
-                <div class="bairro-item">
-                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
-                        <input type="checkbox" id="chk_${cidadeKey}_${key}" ${ativo} onchange="toggleBairro('${cidadeKey}', '${key}', this.checked)" style="width:20px; height:20px;">
-                        <div class="bairro-info">
-                            <div class="bairro-nome">${bairro.nome}</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="color:#FFC107;">R$</span>
-                        <input type="number" id="frete_${cidadeKey}_${key}" value="${frete}" step="0.01" min="0" placeholder="Frete" 
-                               style="width:100px; padding:8px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;"
-                               ${!ativo ? 'disabled' : ''}
-                               onchange="salvarFrete('${cidadeKey}', '${key}', this.value)">
-                    </div>
-                </div>
-            `;
-        });
-        
-        container.innerHTML = html;
-    });
-}
+            dbRef.child('info/senha_master').once('value', (snapshot) => {
+                const senhaCorreta = snapshot.val();
+                
+                if (senhaDigitada === senhaCorreta) {
+                    adminLogado = true;
+                    document.getElementById('adminBtn').classList.add('ativo');
+                    fecharModal('modalLogin');
+                    abrirModalBairros();
+                } else {
+                    alert('Senha incorreta!');
+                }
+            });
+        }
 
-        
+        // ===== CARREGAR CIDADES E BAIRROS =====
+        function carregarBairros() {
+            const lista = document.getElementById('bairrosLista');
+            
+            // Busca cidades GLOBAIS
+            database.ref('bairros_globais').once('value', (snapshot) => {
+                const cidades = snapshot.val() || {};
+                
+                if (Object.keys(cidades).length === 0) {
+                    lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma cidade cadastrada</p>';
+                    return;
+                }
+
+                let html = `
+                    <div style="margin-bottom:20px;">
+                        <label style="color:#800020; font-weight:600;">Selecione a cidade:</label>
+                        <select id="seletorCidade" onchange="mudarCidade()" style="width:100%; padding:12px; margin-top:5px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;">
+                `;
+                
+                Object.entries(cidades).forEach(([key, cidade]) => {
+                    html += `<option value="${key}">${cidade.nome}</option>`;
+                });
+                
+                html += `</select></div>`;
+                html += `<div id="bairrosContainer"></div>`;
+                
+                lista.innerHTML = html;
+                
+                // Carrega bairros da primeira cidade
+                mudarCidade();
+            });
+        }
+
+        // ===== FUNÇÕES AUXILIARES =====
+        function toggleBairro(cidadeKey, bairroKey, ativo) {
+            const inputFrete = document.getElementById(`frete_${cidadeKey}_${bairroKey}`);
+            inputFrete.disabled = !ativo;
+            
+            if (ativo) {
+                inputFrete.focus();
+            } else {
+                // Se desativou, remove
+                dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).remove();
+            }
+        }
+
+        function salvarFrete(cidadeKey, bairroKey, valor) {
+            const frete = parseFloat(valor);
+            if (isNaN(frete) || frete < 0) return;
+            
+            dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).set({
+                cidade: cidadeKey,
+                bairro: bairroKey,
+                ativo: true,
+                frete: frete
+            }).then(() => {
+                console.log('Frete salvo!');
+            });
+        }
+
+        // ===== MUDAR CIDADE =====
+        function mudarCidade() {
+            const cidadeKey = document.getElementById('seletorCidade').value;
+            
+            Promise.all([
+                database.ref(`bairros_globais/${cidadeKey}/bairros`).once('value'),
+                dbRef.child('atendimento').once('value')
+            ]).then(([bairrosSnap, atendimentoSnap]) => {
+                const bairros = bairrosSnap.val() || {};
+                const atendimento = atendimentoSnap.val() || {};
+                
+                const container = document.getElementById('bairrosContainer');
+                
+                if (Object.keys(bairros).length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#999;">Nenhum bairro cadastrado nesta cidade</p>';
+                    return;
+                }
+                
+                let html = `<h3 style="color:#800020; margin:20px 0;">Bairros:</h3>`;
+                
+                Object.entries(bairros).forEach(([key, bairro]) => {
+                    const config = atendimento[`${cidadeKey}_${key}`] || { ativo: false, frete: 0 };
+                    const ativo = config.ativo ? 'checked' : '';
+                    const frete = config.frete || '';
+                    
+                    html += `
+                        <div class="bairro-item">
+                            <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                                <input type="checkbox" id="chk_${cidadeKey}_${key}" ${ativo} onchange="toggleBairro('${cidadeKey}', '${key}', this.checked)" style="width:20px; height:20px;">
+                                <div class="bairro-info">
+                                    <div class="bairro-nome">${bairro.nome}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="color:#FFC107;">R$</span>
+                                <input type="number" id="frete_${cidadeKey}_${key}" value="${frete}" step="0.01" min="0" placeholder="Frete" 
+                                       style="width:100px; padding:8px; background:rgba(255,255,255,0.1); border:1px solid #800020; border-radius:8px; color:#fff;"
+                                       ${!ativo ? 'disabled' : ''}
+                                       onchange="salvarFrete('${cidadeKey}', '${key}', this.value)">
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            });
+        }
 
         // ===== INICIAR =====
         window.onload = function() {
