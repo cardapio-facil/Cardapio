@@ -496,27 +496,44 @@
         
         const templateCache = new Map();
 
-        // ===== VERIFICAR SE ESTÁ NO INTERVALO DE 2 DIAS =====
-        function ultimos2Dias(timestamp) {
-            const data = new Date(timestamp);
-            const hoje = new Date();
-            const doisDiasAtras = new Date();
-            doisDiasAtras.setDate(hoje.getDate() - 2);
-            
-            data.setHours(0, 0, 0, 0);
-            doisDiasAtras.setHours(0, 0, 0, 0);
-            
-            return data >= doisDiasAtras;
-        }
+        // ===== VERIFICAR SE ESTÁ NO INTERVALO DE 2 DIAS (CORRIGIDO) =====
+function ultimos2Dias(timestamp) {
+    const data = new Date(timestamp);
+    const hoje = new Date();
+    const doisDiasAtras = new Date();
+    
+    // Ajusta para comparar apenas datas (ignora horas)
+    data.setHours(0, 0, 0, 0);
+    hoje.setHours(0, 0, 0, 0);
+    doisDiasAtras.setDate(hoje.getDate() - 2);
+    doisDiasAtras.setHours(0, 0, 0, 0);
+    
+    console.log('📅 Comparando datas:', {
+        pedido: data.toLocaleDateString('pt-BR'),
+        hoje: hoje.toLocaleDateString('pt-BR'),
+        doisDiasAtras: doisDiasAtras.toLocaleDateString('pt-BR'),
+        resultado: data >= doisDiasAtras
+    });
+    
+    return data >= doisDiasAtras;
+}
 
-        // ===== VERIFICAR SE É HOJE =====
-        function ehHoje(timestamp) {
-            const data = new Date(timestamp);
-            const hoje = new Date();
-            data.setHours(0, 0, 0, 0);
-            hoje.setHours(0, 0, 0, 0);
-            return data.getTime() === hoje.getTime();
-        }
+      // ===== VERIFICAR SE É HOJE (CORRIGIDO) =====
+function ehHoje(timestamp) {
+    const data = new Date(timestamp);
+    const hoje = new Date();
+    
+    data.setHours(0, 0, 0, 0);
+    hoje.setHours(0, 0, 0, 0);
+    
+    console.log('📅 É hoje?', {
+        pedido: data.toLocaleDateString('pt-BR'),
+        hoje: hoje.toLocaleDateString('pt-BR'),
+        resultado: data.getTime() === hoje.getTime()
+    });
+    
+    return data.getTime() === hoje.getTime();
+}
 
         // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
         if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
@@ -616,36 +633,34 @@
             document.getElementById('totalCancelado').textContent = stats.cancelado;
         }
 
-        // ===== FILTRAR PEDIDOS =====
-        function filtrarPedidos(filtro, event = null) {
-            filtroAtual = filtro;
-            
-            document.querySelectorAll('.filtro-btn').forEach(btn => {
-                btn.classList.remove('ativo');
-            });
-            if (event) event.target.classList.add('ativo');
+       // ===== FILTRAR PEDIDOS (VERSÃO DE TESTE) =====
+function filtrarPedidos(filtro, event = null) {
+    filtroAtual = filtro;
+    
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.classList.remove('ativo');
+    });
+    if (event) event.target.classList.add('ativo');
 
-            let resultado = [];
-            
-            if (filtro === 'todos') {
-                // TODOS os status dos últimos 2 dias
-                resultado = todosPedidos.filter(p => ultimos2Dias(p.data));
-            } 
-            else if (filtro === 'entregue') {
-                // Só entregues dos últimos 2 dias
-                resultado = todosPedidos.filter(p => p.status === 'entregue' && ultimos2Dias(p.data));
-            }
-            else {
-                // Demais filtros: só hoje
-                resultado = todosPedidos.filter(p => p.status === filtro && ehHoje(p.data));
-            }
-            
-            // Ordenar (mais recentes primeiro)
-            resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
-            
-            renderizarPedidos(resultado);
-        }
-
+    let resultado = [];
+    
+    if (filtro === 'todos') {
+        // MOSTRA TODOS OS PEDIDOS (sem filtro de data)
+        resultado = todosPedidos;
+        console.log('📅 Mostrando TODOS os pedidos:', resultado.length);
+    } 
+    else if (filtro === 'entregue') {
+        resultado = todosPedidos.filter(p => p.status === 'entregue');
+    }
+    else {
+        resultado = todosPedidos.filter(p => p.status === filtro);
+    }
+    
+    // Ordenar (mais recentes primeiro)
+    resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
+    
+    renderizarPedidos(resultado);
+}
         // ===== RENDERIZAR PEDIDOS =====
 function renderizarPedidos(pedidos) {
     console.log('📦 Renderizando pedidos:', pedidos);
