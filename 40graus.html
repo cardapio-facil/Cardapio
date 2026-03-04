@@ -17,7 +17,6 @@
             --texto-secundario: #f0f0f0;       /* Texto mais claro */
             --borda: #f0f0f0;                   /* Cor das bordas */
         }
-
         * {
             margin: 0;
             padding: 0;
@@ -34,7 +33,7 @@
 
         .header {
             backdrop-filter: blur(10px);
-            background: #f0f0f0;
+            background: rgba(255,255,255,0.95);
             border-bottom: 1px solid var(--borda);
             padding: 20px 25px;
             display: flex;
@@ -103,7 +102,7 @@
 
         .login-btn:hover {
             background: var(--cor-primaria);
-            color: rgb(212, 207, 207);
+            color: white;
         }
 
         .login-btn.admin-mode {
@@ -914,7 +913,20 @@
             // Calcular tom mais claro (usando opacidade)
             root.style.setProperty('--cor-secundaria', CONFIG.COR_VINHO + 'dd');
             
-            
+            // Aplicar fundo
+            if (CONFIG.FUNDO_BRANCO) {
+                root.style.setProperty('--fundo-principal', '#ffffff');
+                root.style.setProperty('--fundo-secundario', '#f5f5f5');
+                root.style.setProperty('--texto-principal', CONFIG.TEXTO_ESCURO);
+                root.style.setProperty('--texto-secundario', '#666666');
+                root.style.setProperty('--borda', '#dddddd');
+            } else {
+                root.style.setProperty('--fundo-principal', '#0f0f0f');
+                root.style.setProperty('--fundo-secundario', '#1a1a1a');
+                root.style.setProperty('--texto-principal', CONFIG.TEXTO_CLARO);
+                root.style.setProperty('--texto-secundario', '#cccccc');
+                root.style.setProperty('--borda', 'rgba(128,0,32,0.3)');
+            }
         })();
 
         // ===== CONFIGURAÇÃO DO FIREBASE =====
@@ -2022,75 +2034,71 @@ function renderizarCardapio() {
         }
 
         // ===== ENVIAR WHATSAPP =====
-        function enviarWhatsApp() {
-            if (pedidosAtuais.length === 0) {
-                alert('Adicione pelo menos uma Refeição!');
-                return;
+function enviarWhatsApp() {
+    console.log('🚀 INICIANDO ENVIO DO PEDIDO');
+    console.log('1. Pedidos atuais:', pedidosAtuais);
+    console.log('2. WhatsApp número:', whatsappNumero);
+    console.log('3. Nome do cliente:', document.getElementById('nomeCliente').value);
+    
+    if (pedidosAtuais.length === 0) {
+        alert('Adicione pelo menos uma Refeição!');
+        return;
+    }
+
+    const nome = document.getElementById('nomeCliente').value;
+    if (!nome) {
+        alert('Digite seu nome!');
+        return;
+    }
+
+    // ... resto do código
+
+    const pedidoId = 'pedido_' + Date.now();
+    console.log('4. ID do pedido:', pedidoId);
+    
+    const pedidoData = {
+        numero: numeroPedido,
+        data: new Date().toISOString(),
+        dataFormatada: new Date().toLocaleString('pt-BR'),
+        cliente: {
+            nome: nome,
+            telefone: document.getElementById('telefone').value,
+            endereco: {
+                rua: document.getElementById('rua').value,
+                numero: document.getElementById('numero').value,
+                complemento: document.getElementById('complemento').value,
+                bairro: document.getElementById('bairro').value,
+                cidade: document.getElementById('cidade').value,
+                cep: document.getElementById('cep').value,
+                referencia: document.getElementById('referencia').value
             }
+        },
+        itens: pedidosAtuais,
+        total: calcularTotal(),
+        taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 
+            (CONFIG.TIPO_FRETE === 'fixo' ? CONFIG.VALOR_FRETE_FIXO : parseFloat(document.getElementById('freteValor').dataset.valor) || 0) : 0,
+        pagamento: document.getElementById('pagamento').value,
+        troco: document.getElementById('trocoValor').value || null,
+        tipoEntrega: document.getElementById('tipoEntrega').value,
+        status: 'novo'
+    };
+    
+    console.log('5. Dados do pedido:', pedidoData);
+    console.log('6. Caminho no Firebase:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
 
-            const nome = document.getElementById('nomeCliente').value;
-            if (!nome) {
-                alert('Digite seu nome!');
-                return;
-            }
-
-            if (document.getElementById('tipoEntrega').value === 'entrega') {
-                if (!document.getElementById('bairro').value) {
-                    alert('Preencha o bairro para entrega!');
-                    return;
-                }
-                if (!document.getElementById('rua').value) {
-                    alert('Preencha a rua para entrega!');
-                    return;
-                }
-                if (!document.getElementById('numero').value) {
-                    alert('Preencha o número para entrega!');
-                    return;
-                }
-            }
-
-            const numeroPedido = Math.floor(Math.random() * 10000);
-            
-            const mensagem = gerarMensagemWhatsApp();
-            window.open(`https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`, '_blank');
-
-            const pedidoId = 'pedido_' + Date.now();
-            const pedidoData = {
-                numero: numeroPedido,
-                data: new Date().toISOString(),
-                dataFormatada: new Date().toLocaleString('pt-BR'),
-                cliente: {
-                    nome: nome,
-                    telefone: document.getElementById('telefone').value,
-                    endereco: {
-                        rua: document.getElementById('rua').value,
-                        numero: document.getElementById('numero').value,
-                        complemento: document.getElementById('complemento').value,
-                        bairro: document.getElementById('bairro').value,
-                        cidade: document.getElementById('cidade').value,
-                        cep: document.getElementById('cep').value,
-                        referencia: document.getElementById('referencia').value
-                    }
-                },
-                itens: pedidosAtuais,
-                total: calcularTotal(),
-                taxaEntrega: document.getElementById('tipoEntrega').value === 'entrega' ? 
-                    (CONFIG.TIPO_FRETE === 'fixo' ? CONFIG.VALOR_FRETE_FIXO : parseFloat(document.getElementById('freteValor').dataset.valor) || 0) : 0,
-                pagamento: document.getElementById('pagamento').value,
-                troco: document.getElementById('trocoValor').value || null,
-                tipoEntrega: document.getElementById('tipoEntrega').value,
-                status: 'novo'
-            };
-
-            dbRef.child('pedidos/' + pedidoId).set(pedidoData)
-                .then(() => {
-                    alert('Pedido enviado!');
-                    pedidosAtuais = [];
-                    atualizarPainelPedidos();
-                })
-                .catch(error => console.error('Erro:', error));
-        }
-
+    dbRef.child('pedidos/' + pedidoId).set(pedidoData)
+        .then(() => {
+            console.log('✅ SUCESSO! Pedido salvo!');
+            console.log('7. Pedido salvo em:', 'restaurantes/' + RESTAURANTE_ID + '/pedidos/' + pedidoId);
+            alert('Pedido enviado!');
+            pedidosAtuais = [];
+            atualizarPainelPedidos();
+        })
+        .catch(error => {
+            console.error('❌ ERRO ao salvar:', error);
+            alert('Erro: ' + error.message);
+        });
+}
         // ===== FUNÇÕES AUXILIARES =====
         function toggleTroco() {
             document.getElementById('trocoDiv').style.display = 
