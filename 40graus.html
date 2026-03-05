@@ -2255,7 +2255,16 @@ function enviarWhatsApp() {
         totalPratos += subtotal;
     });
 
-    const taxaEntrega = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
+    // Calcular taxa de entrega
+    let taxaEntrega = 0;
+    if (document.getElementById('tipoEntrega').value === 'entrega') {
+        if (CONFIG.TIPO_FRETE === 'fixo') {
+                taxaEntrega = CONFIG.VALOR_FRETE_FIXO;
+        } else {
+                const freteField = document.getElementById('freteValor');
+                taxaEntrega = parseFloat(freteField.dataset.valor) || 0;
+        }
+}
     const totalFinal = totalPratos + taxaEntrega;
 // ===== MONTAR OBJETO DO PEDIDO =====
     const pedidoData = {
