@@ -1512,33 +1512,38 @@ function renderizarCardapio() {
         }
 
     function buscarCep() {
-        const cep = document.getElementById('cep').value.replace(/\D/g, '');
+        const cepInput = document.getElementById('cep').value;
+        if (!cepInput) return;
 
 
-        if (cep.length === 8) {
-                fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                        .then(response => response.json())
-                        .then(data => {
-                                if (!data.erro) {
-                                        document.getElementById('rua').value = data.logradouro || '';
-                                        document.getElementById('bairro').value = data.bairro || '';
-                                        document.getElementById('cidade').value = data.localidade || '';
-
-
-                                        // Se for frete por bairro, buscar valor no Firebase (com silencioso = false para mostrar alerta)
-                                        if (CONFIG.TIPO_FRETE === 'bairro' && data.bairro) {
-                                                buscarFretePorBairro(data.bairro, false);
-                                        }
-                                } else {
-                                        alert('CEP não encontrado!');
-                                }
-                        })
-                        .catch(error => {
-                                console.error('Erro ao buscar CEP:', error);
-                                alert('Erro ao buscar CEP. Tente novamente.');
-                        });
+        const cep = cepInput.replace(/\D/g, '');
+        if (cep.length !== 8) {
+                alert('CEP inválido!');
+                return;
         }
-    }
+
+
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                        if (!data.erro) {
+                                document.getElementById('rua').value = data.logradouro || '';
+                                document.getElementById('bairro').value = data.bairro || '';
+                                document.getElementById('cidade').value = data.localidade || '';
+
+
+                                if (CONFIG.TIPO_FRETE === 'bairro' && data.bairro) {
+                                        buscarFretePorBairro(data.bairro, false); // false = mostra alerta
+                                }
+                        } else {
+                                alert('CEP não encontrado!');
+                        }
+                })
+                .catch(error => {
+                        console.error('Erro ao buscar CEP:', error);
+                        alert('Erro ao buscar CEP. Tente novamente.');
+                });
+}
 
     function buscarFretePorBairro(nomeBairro, silencioso = false) {
          // Converter nome do bairro para key (formato usado no Firebase)
@@ -1825,7 +1830,7 @@ function renderizarCardapio() {
                 buscarEnderecosCliente();
             }
         }
-     // ===== FUNÇÃO PARA CARREGAR TODOS OS DADOS DO CLIENTE DO LOCALSTORAGE =====
+// ===== FUNÇÃO PARA CARREGAR TODOS OS DADOS DO CLIENTE DO LOCALSTORAGE =====
 function carregarDadosCliente() {
         console.log('📂 Carregando dados do cliente...');
 
@@ -1851,6 +1856,7 @@ function carregarDadosCliente() {
                         const endereco = JSON.parse(enderecoSalvo);
 
 
+                        // 1️⃣ PRIMEIRO: Preencher todos os campos
                         document.getElementById('cep').value = endereco.cep || '';
                         document.getElementById('cidade').value = endereco.cidade || '';
                         document.getElementById('rua').value = endereco.rua || '';
@@ -1858,28 +1864,73 @@ function carregarDadosCliente() {
                         document.getElementById('complemento').value = endereco.complemento || '';
                         document.getElementById('bairro').value = endereco.bairro || '';
                         document.getElementById('referencia').value = endereco.referencia || '';
-                           
-                    
 
-                        // ===== CORREÇÃO: Só buscar CEP se ele existir e tiver 8 dígitos =====
-                        if (endereco.cep && endereco.cep.replace(/\D/g, '').length === 8) {
-                                setTimeout(() => {
-                                        buscarCep();
-                                }, 500);
-                        } else {
-                                console.log('⚠️ CEP inválido ou vazio, não vou buscar');
-                                // Se não tiver CEP válido, pelo menos tenta calcular frete pelo bairro salvo
-                                if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
-                                        buscarFretePorBairro(endereco.bairro);
+
+                        // 2️⃣ SEGUNDO: Calcular frete pelo BAIRRO (SEMPRE, sem alerta)
+                        if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
+                                console.log('🚚 Calculando frete pelo bairro:', endereco.bairro);
+                                buscarFretePorBairro(endereco.bairro, true); // true = silencioso
+                        }
+
+
+                        // 3️⃣ TERCEIRO: Se tiver CEP válido, busca para CONFIRMAR (também silencioso)
+                        if (endereco.cep) {
+                                const cepLimpo = endereco.cep.replace(/\D/g, '');
+                                if (cepLimpo.length === 8) {
+                                        console.log('📮 CEP encontrado, buscando confirmação...');
+                                        setTimeout(() => {
+                                                // Criar uma função especial para busca silenciosa de CEP
+                                                buscarCepSilencioso();
+                                        }, 500);
                                 }
                         }
 
 
-                        console.log('✅ Endereço carregado:', endereco);
+                        console.log('✅ Endereço carregado com sucesso!');
                 } catch (e) {
                         console.error('Erro ao carregar endereço:', e);
                 }
         }
+}
+
+
+// ===== FUNÇÃO NOVA: Buscar CEP sem mostrar alertas =====
+function buscarCepSilencioso() {
+        const cepInput = document.getElementById('cep').value;
+        if (!cepInput) return;
+
+
+        const cep = cepInput.replace(/\D/g, '');
+        if (cep.length !== 8) return;
+
+
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                        if (!data.erro) {
+                                // Só atualiza se os campos estiverem vazios
+                                if (!document.getElementById('rua').value) {
+                                        document.getElementById('rua').value = data.logradouro || '';
+                                }
+                                if (!document.getElementById('bairro').value) {
+                                        document.getElementById('bairro').value = data.bairro || '';
+                                }
+                                if (!document.getElementById('cidade').value) {
+                                        document.getElementById('cidade').value = data.localidade || '';
+                                }
+
+
+                                // Se o bairro mudou, recalcula frete (silencioso)
+                                if (CONFIG.TIPO_FRETE === 'bairro' && data.bairro &&
+                                        data.bairro !== document.getElementById('bairro').value) {
+                                        buscarFretePorBairro(data.bairro, true);
+                                }
+                        }
+                })
+                .catch(error => {
+                        console.log('⚠️ Busca silenciosa de CEP falhou:', error);
+                        // Não mostrar alerta!
+                });
 }
         function salvarEnderecos() {
             localStorage.setItem('enderecos_' + RESTAURANTE_ID, JSON.stringify(enderecosClientes));
