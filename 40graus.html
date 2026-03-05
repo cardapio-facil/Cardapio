@@ -1783,34 +1783,31 @@ function renderizarCardapio() {
             alert('✏️ Editando a Refeição. Faça as alterações e clique em "ADICIONAR AO PEDIDO" novamente.');
         }
 
-        function atualizarTotal() {
-            let totalPratos = 0;
-            const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
-            
-            pedidosAtuais.forEach(prato => {
+function atualizarTotal() {
+        let totalPratos = 0;
+        const valorPrato = parseFloat(document.getElementById('valorPrato').value) || 0;
+
+        pedidosAtuais.forEach(prato => {
                 let subtotal = valorPrato;
                 if (prato.acompanhamentos.includes('Sem Arroz')) subtotal += config.valorSemArroz;
                 prato.bebidas.forEach(b => subtotal += b.valor);
                 prato.acrescimos.forEach(a => subtotal += a.valor);
                 totalPratos += subtotal;
-            });
+        });
 
-          let taxaEntrega = 0;
-if (document.getElementById('tipoEntrega').value === 'entrega') {
-        if (CONFIG.TIPO_FRETE === 'fixo') {
-                taxaEntrega = CONFIG.VALOR_FRETE_FIXO;
-        } else {
-                // Pega do campo frete (dataset.valor)
-                const freteField = document.getElementById('freteValor');
-                taxaEntrega = parseFloat(freteField.dataset.valor) || 0;
+        let taxaEntrega = 0;
+        if (document.getElementById('tipoEntrega').value === 'entrega') {
+                if (CONFIG.TIPO_FRETE === 'fixo') {
+                        taxaEntrega = CONFIG.VALOR_FRETE_FIXO;
+                } else {
+                        const freteField = document.getElementById('freteValor');
+                        taxaEntrega = parseFloat(freteField.dataset.valor) || 0;
+                }
         }
+
+        document.getElementById('totalFinal').innerHTML = `Total: R$ ${(totalPratos + taxaEntrega).toFixed(2)}`;
+        return totalPratos + taxaEntrega;
 }
-
-const totalFinal = totalPratos + taxaEntrega;
-            
-            document.getElementById('totalFinal').innerHTML = `Total: R$ ${(totalPratos + taxa).toFixed(2)}`;
-            return totalPratos + taxa;
-        }
 
         // ===== ENDEREÇOS =====
         function carregarEnderecosLocalStorage() {
@@ -1977,9 +1974,8 @@ function buscarCepSilencioso() {
                     document.getElementById('bairro').value = ultimoEnderecoSelecionado.bairro || '';
                     document.getElementById('referencia').value = ultimoEnderecoSelecionado.referencia || '';
                     
-                    if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
-                     
-                      buscarFretePorBairro(endereco.bairro, true); // true = não mostra alerta
+                   if (CONFIG.TIPO_FRETE === 'bairro' && ultimoEnderecoSelecionado && ultimoEnderecoSelecionado.bairro) {
+                           buscarFretePorBairro(ultimoEnderecoSelecionado.bairro, true);
                     }
                 }
             } else {
