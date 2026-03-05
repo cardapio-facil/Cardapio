@@ -103,6 +103,7 @@
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .filtro-btn.ativo {
@@ -201,14 +202,14 @@
 
         .pedido-acoes {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 15px;
             flex-wrap: wrap;
         }
 
         .btn-acao {
             flex: 1;
-            padding: 10px;
+            padding: 8px 5px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -217,9 +218,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            min-width: 70px;
-            font-size: 0.85rem;
+            gap: 3px;
+            min-width: 65px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .btn-preparar { background: #FFC107; color: #000; }
@@ -233,6 +236,10 @@
         .btn-acao:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-acao i {
+            font-size: 0.8rem;
         }
 
         .modal {
@@ -358,18 +365,52 @@
             border: 2px solid #fff;
         }
 
+        .detalhes-pedido table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .detalhes-pedido td {
+            padding: 8px 5px;
+            border-bottom: 1px solid rgba(128,0,32,0.3);
+        }
+
+        .detalhes-pedido td:first-child {
+            font-weight: 600;
+            color: #800020;
+            width: 120px;
+        }
+
+        .detalhes-pedido h3 {
+            color: #800020;
+            margin: 20px 0 10px;
+        }
+
+        .detalhes-pedido .item-detalhe {
+            background: rgba(255,255,255,0.03);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #800020;
+        }
+
         @media (max-width: 768px) {
             .pedidos-grid {
                 grid-template-columns: 1fr;
             }
             
             .btn-acao {
-                font-size: 0.75rem;
-                padding: 8px;
+                font-size: 0.7rem;
+                padding: 6px 3px;
             }
             
             .status-info {
                 justify-content: center;
+            }
+            
+            .btn-acao i {
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -415,12 +456,12 @@
     </div>
 
     <div class="filtros">
-        <button class="filtro-btn ativo" onclick="filtrarPedidos('todos')">📋 Todos (2 dias)</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('novo')">🟢 Novos</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('preparando')">🟡 Preparando</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('saiu')">🔵 Saiu</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('entregue')">✅ Entregues (2 dias)</button>
-        <button class="filtro-btn" onclick="filtrarPedidos('cancelado')">❌ Cancelados</button>
+        <button class="filtro-btn ativo" onclick="filtrarPedidos('todos', event)">📋 Todos (2 dias)</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('novo', event)">🟢 Novos</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('preparando', event)">🟡 Preparando</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('saiu', event)">🔵 Saiu</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('entregue', event)">✅ Entregues (2 dias)</button>
+        <button class="filtro-btn" onclick="filtrarPedidos('cancelado', event)">❌ Cancelados</button>
     </div>
 
     <div class="pedidos-grid" id="pedidosGrid">
@@ -463,9 +504,7 @@
         </div>
     </div>
 
-    <audio id="notificacaoSonora" preload="auto" style="display:none;">
-        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="notificacaoSonora" preload="auto" style="display:none;"></audio>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -493,57 +532,121 @@
         let todosBairros = {};
         let filtroAtual = 'todos';
         let adminLogado = false;
+        let audioInterval = null;
+        let ultimosPedidosNovos = new Set();
+        let audioReproducoes = 0;
         
         const templateCache = new Map();
 
-        // ===== VERIFICAR SE ESTÁ NO INTERVALO DE 2 DIAS (CORRIGIDO) =====
-function ultimos2Dias(timestamp) {
-    const data = new Date(timestamp);
-    const hoje = new Date();
-    const doisDiasAtras = new Date();
-    
-    // Ajusta para comparar apenas datas (ignora horas)
-    data.setHours(0, 0, 0, 0);
-    hoje.setHours(0, 0, 0, 0);
-    doisDiasAtras.setDate(hoje.getDate() - 2);
-    doisDiasAtras.setHours(0, 0, 0, 0);
-    
-    console.log('📅 Comparando datas:', {
-        pedido: data.toLocaleDateString('pt-BR'),
-        hoje: hoje.toLocaleDateString('pt-BR'),
-        doisDiasAtras: doisDiasAtras.toLocaleDateString('pt-BR'),
-        resultado: data >= doisDiasAtras
-    });
-    
-    return data >= doisDiasAtras;
-}
+        // ===== CONFIGURAR ÁUDIO =====
+        function configurarAudio() {
+            const audio = document.getElementById('notificacaoSonora');
+            audio.src = `img/som${RESTAURANTE_ID}.mp3`;
+            audio.load();
+        }
 
-      // ===== VERIFICAR SE É HOJE (CORRIGIDO) =====
-function ehHoje(timestamp) {
-    const data = new Date(timestamp);
-    const hoje = new Date();
-    
-    data.setHours(0, 0, 0, 0);
-    hoje.setHours(0, 0, 0, 0);
-    
-    console.log('📅 É hoje?', {
-        pedido: data.toLocaleDateString('pt-BR'),
-        hoje: hoje.toLocaleDateString('pt-BR'),
-        resultado: data.getTime() === hoje.getTime()
-    });
-    
-    return data.getTime() === hoje.getTime();
-}
+        // ===== PARAR ÁUDIO =====
+        function pararAudio() {
+            if (audioInterval) {
+                clearInterval(audioInterval);
+                audioInterval = null;
+            }
+            const audio = document.getElementById('notificacaoSonora');
+            audio.pause();
+            audio.currentTime = 0;
+            audioReproducoes = 0;
+        }
+
+        // ===== TOCAR ÁUDIO (APENAS 2 VEZES) =====
+        function tocarAudioNotificacao() {
+            const audio = document.getElementById('notificacaoSonora');
+            
+            // Se já estiver tocando, para
+            pararAudio();
+            
+            audioReproducoes = 0;
+            
+            // Função para tocar uma vez
+            const tocarUmaVez = () => {
+                audio.play().catch(e => console.log('Erro ao tocar som:', e));
+                audioReproducoes++;
+                
+                // Se já tocou 2 vezes, para o intervalo
+                if (audioReproducoes >= 2) {
+                    pararAudio();
+                }
+            };
+            
+            // Toca imediatamente
+            tocarUmaVez();
+            
+            // Configura intervalo para tocar de novo após 6 segundos (só mais uma vez)
+            audioInterval = setInterval(() => {
+                if (audioReproducoes < 2) {
+                    tocarUmaVez();
+                } else {
+                    pararAudio();
+                }
+            }, 6000);
+        }
+
+        // ===== VERIFICAR NOVOS PEDIDOS =====
+        function verificarNovosPedidos(pedidos) {
+            const novosAgora = new Set(
+                pedidos
+                    .filter(p => p.status === 'novo')
+                    .map(p => p.id)
+            );
+            
+            // Verifica se tem pedido novo que não estava antes
+            let temNovo = false;
+            for (let id of novosAgora) {
+                if (!ultimosPedidosNovos.has(id)) {
+                    temNovo = true;
+                    break;
+                }
+            }
+            
+            ultimosPedidosNovos = novosAgora;
+            
+            if (temNovo) {
+                tocarAudioNotificacao();
+            }
+        }
+
+        // ===== EVENTO DE CLIQUE PARA PARAR ÁUDIO =====
+        document.addEventListener('click', function() {
+            pararAudio();
+        }, { once: false });
+
+        // ===== VERIFICAR SE ESTÁ NO INTERVALO DE 2 DIAS =====
+        function ultimos2Dias(timestamp) {
+            const data = new Date(timestamp);
+            const hoje = new Date();
+            const doisDiasAtras = new Date();
+            
+            data.setHours(0, 0, 0, 0);
+            hoje.setHours(0, 0, 0, 0);
+            doisDiasAtras.setDate(hoje.getDate() - 2);
+            doisDiasAtras.setHours(0, 0, 0, 0);
+            
+            return data >= doisDiasAtras;
+        }
+
+        // ===== VERIFICAR SE É HOJE =====
+        function ehHoje(timestamp) {
+            const data = new Date(timestamp);
+            const hoje = new Date();
+            
+            data.setHours(0, 0, 0, 0);
+            hoje.setHours(0, 0, 0, 0);
+            
+            return data.getTime() === hoje.getTime();
+        }
 
         // ===== PEDIR PERMISSÃO PARA NOTIFICAÇÕES =====
         if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
             Notification.requestPermission();
-        }
-
-        // ===== TOCAR NOTIFICAÇÃO =====
-        function tocarNotificacao() {
-            const audio = document.getElementById('notificacaoSonora');
-            audio.play().catch(e => console.log('Erro ao tocar som:', e));
         }
 
         // ===== MOSTRAR NOTIFICAÇÃO =====
@@ -551,7 +654,7 @@ function ehHoje(timestamp) {
             if (Notification.permission === 'granted') {
                 new Notification(titulo, {
                     body: corpo,
-                    icon: 'img/logorestaurante1.png',
+                    icon: `img/logorestaurante1.png`,
                     requireInteraction: true
                 });
             }
@@ -563,7 +666,6 @@ function ehHoje(timestamp) {
             
             dbRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                console.log('📦 Dados recebidos:', data);
                 
                 if (!data) {
                     document.getElementById('pedidosGrid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum dado encontrado</p>';
@@ -575,20 +677,15 @@ function ehHoje(timestamp) {
                     document.getElementById('nomeRestaurante').textContent = '📊 Painel - ' + data.info.nome;
                 }
                 
-                // Carregar bairros (compatível com novo formato)
-                todosBairros = {}; // Limpa
-
-                // Tenta carregar do formato ANTIGO (bairros)
+                // Carregar bairros
+                todosBairros = {};
                 if (data.bairros) {
                     todosBairros = data.bairros;
                 }
-                // Tenta carregar do formato NOVO (atendimento)
                 else if (data.atendimento) {
-                    // Converte atendimento para o formato que o painel espera
                     Object.entries(data.atendimento).forEach(([chave, valor]) => {
-                        // Chave tem formato: "cidade_bairro"
                         const partes = chave.split('_');
-                        const bairroKey = partes[1]; // Pega só o bairro
+                        const bairroKey = partes[1];
 
                         todosBairros[bairroKey] = {
                             nome: bairroKey.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
@@ -599,12 +696,14 @@ function ehHoje(timestamp) {
                 
                 // Carregar pedidos
                 if (data.pedidos) {
+                    const pedidosAnteriores = [...todosPedidos];
                     todosPedidos = Object.entries(data.pedidos).map(([id, pedido]) => ({
                         id: id,
                         ...pedido
                     }));
                     
-                    console.log(`📋 ${todosPedidos.length} pedidos carregados`);
+                    // Verificar novos pedidos
+                    verificarNovosPedidos(todosPedidos);
                     
                     atualizarEstatisticas();
                     filtrarPedidos(filtroAtual);
@@ -633,179 +732,168 @@ function ehHoje(timestamp) {
             document.getElementById('totalCancelado').textContent = stats.cancelado;
         }
 
-       // ===== FILTRAR PEDIDOS (VERSÃO DE TESTE) =====
-function filtrarPedidos(filtro, event = null) {
-    filtroAtual = filtro;
-    
-    document.querySelectorAll('.filtro-btn').forEach(btn => {
-        btn.classList.remove('ativo');
-    });
-    if (event) event.target.classList.add('ativo');
+        // ===== FILTRAR PEDIDOS =====
+        function filtrarPedidos(filtro, event = null) {
+            filtroAtual = filtro;
+            
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.classList.remove('ativo');
+            });
+            if (event) event.target.classList.add('ativo');
 
-    let resultado = [];
-    
-    if (filtro === 'todos') {
-        // MOSTRA TODOS OS PEDIDOS (sem filtro de data)
-        resultado = todosPedidos;
-        console.log('📅 Mostrando TODOS os pedidos:', resultado.length);
-    } 
-    else if (filtro === 'entregue') {
-        resultado = todosPedidos.filter(p => p.status === 'entregue');
-    }
-    else {
-        resultado = todosPedidos.filter(p => p.status === filtro);
-    }
-    
-    // Ordenar (mais recentes primeiro)
-    resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
-    
-    renderizarPedidos(resultado);
-}
-        // ===== RENDERIZAR PEDIDOS =====
-function renderizarPedidos(pedidos) {
-    console.log('📦 Renderizando pedidos:', pedidos);
-    console.log('🏘️ Bairros carregados:', todosBairros);
-    
-    const grid = document.getElementById('pedidosGrid');
-    
-    if (pedidos.length === 0) {
-        grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido encontrado</p>';
-        return;
-    }
-
-    const fragment = document.createDocumentFragment();
-    const template = document.createElement('template');
-
-    pedidos.forEach(pedido => {
-        console.log('🔍 Processando pedido:', pedido.id);
-        console.log('   Cliente completo:', pedido.cliente);
-        console.log('   Endereço:', pedido.cliente?.endereco);
-        
-        const cacheKey = `${pedido.id}_${pedido.status}`;
-
-        if (templateCache.has(cacheKey)) {
-            fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
-            return;
+            let resultado = [];
+            
+            if (filtro === 'todos') {
+                resultado = todosPedidos.filter(p => ultimos2Dias(p.data));
+            } 
+            else if (filtro === 'entregue') {
+                resultado = todosPedidos.filter(p => p.status === 'entregue' && ultimos2Dias(p.data));
+            }
+            else {
+                resultado = todosPedidos.filter(p => p.status === filtro);
+            }
+            
+            // Ordenar (mais recentes primeiro)
+            resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
+            renderizarPedidos(resultado);
         }
 
-        const statusClass = pedido.status || 'novo';
-        const statusText = {
-            'novo': '🟢 NOVO',
-            'preparando': '🟡 PREPARANDO',
-            'saiu': '🔵 SAIU',
-            'entregue': '✅ ENTREGUE',
-            'cancelado': '❌ CANCELADO'
-        }[statusClass] || '🟢 NOVO';
-
-        const dataPedido = new Date(pedido.data);
-        const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-        // Processar bairro (corrigido)
-        let bairroHTML = '';
-        if (pedido.cliente) {
-            // Tenta acessar o bairro no local correto
-            let nomeBairro = null;
+        // ===== FORMATAR ENDEREÇO COMPLETO =====
+        function getEnderecoCompleto(pedido) {
+            if (!pedido.cliente) return 'Não informado';
             
-            // Verifica se está em cliente.endereco.bairro (estrutura correta)
-            if (pedido.cliente.endereco && pedido.cliente.endereco.bairro) {
-                nomeBairro = pedido.cliente.endereco.bairro;
-            }
-            // Fallback para cliente.bairro (estrutura antiga)
-            else if (pedido.cliente.bairro) {
-                nomeBairro = pedido.cliente.bairro;
+            let endereco = '';
+            
+            if (pedido.cliente.endereco) {
+                const rua = pedido.cliente.endereco.rua || '';
+                const numero = pedido.cliente.endereco.numero || '';
+                endereco = `${rua}, ${numero}`;
             }
             
-            if (nomeBairro) {
-                // Se for objeto (formato antigo), pega a propriedade nome
-                if (typeof nomeBairro === 'object' && nomeBairro.nome) {
-                    nomeBairro = nomeBairro.nome;
+            let bairro = '';
+            if (pedido.cliente.endereco?.bairro) {
+                bairro = pedido.cliente.endereco.bairro;
+            } else if (pedido.cliente.bairro) {
+                bairro = typeof pedido.cliente.bairro === 'object' ? pedido.cliente.bairro.nome : pedido.cliente.bairro;
+            }
+            
+            if (bairro) {
+                endereco += endereco ? ` - ${bairro}` : bairro;
+            }
+            
+            return endereco || 'Endereço não informado';
+        }
+
+        // ===== RENDERIZAR PEDIDOS =====
+        function renderizarPedidos(pedidos) {
+            const grid = document.getElementById('pedidosGrid');
+            
+            if (pedidos.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:50px;">Nenhum pedido encontrado</p>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            const template = document.createElement('template');
+
+            pedidos.forEach(pedido => {
+                const cacheKey = `${pedido.id}_${pedido.status}`;
+
+                if (templateCache.has(cacheKey)) {
+                    fragment.appendChild(templateCache.get(cacheKey).cloneNode(true));
+                    return;
                 }
 
-                // Mostra o bairro
-                bairroHTML = `<div><i class="fas fa-map-marker-alt"></i> ${nomeBairro}</div>`;
-            }
+                const statusClass = pedido.status || 'novo';
+                const statusText = {
+                    'novo': '🟢 NOVO',
+                    'preparando': '🟡 PREPARANDO',
+                    'saiu': '🔵 SAIU',
+                    'entregue': '✅ ENTREGUE',
+                    'cancelado': '❌ CANCELADO'
+                }[statusClass] || '🟢 NOVO';
+
+                const dataPedido = new Date(pedido.data);
+                const horaFormatada = dataPedido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                const enderecoCompleto = getEnderecoCompleto(pedido);
+
+                const html = `
+                    <div class="pedido-card ${statusClass}">
+                        <div class="pedido-header">
+                            <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
+                            <span class="pedido-status status-${statusClass}">${statusText}</span>
+                        </div>
+
+                        <div class="pedido-cliente">
+                            <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
+                        </div>
+
+                        <div class="pedido-info">
+                            <div><i class="far fa-clock"></i> ${horaFormatada}</div>
+                            <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
+                            <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
+                            <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
+                            ${enderecoCompleto !== 'Não informado' ? `<div><i class="fas fa-map-marker-alt"></i> ${enderecoCompleto}</div>` : ''}
+                        </div>
+
+                        ${pedido.frete ? `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>` : ''}
+
+                        <div class="pedido-total">
+                            R$ ${(pedido.total || 0).toFixed(2)}
+                        </div>
+
+                        <div class="pedido-acoes">
+                            ${statusClass !== 'entregue' && statusClass !== 'cancelado' ? `
+                                ${statusClass === 'novo' ? `
+                                    <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
+                                        <i class="fas fa-utensils"></i> PREPARAR
+                                    </button>
+                                ` : ''}
+
+                                ${statusClass === 'preparando' ? `
+                                    <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
+                                        <i class="fas fa-motorcycle"></i> SAIU
+                                    </button>
+                                ` : ''}
+
+                                ${statusClass === 'saiu' ? `
+                                    <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
+                                        <i class="fas fa-check"></i> ENTREGUE
+                                    </button>
+                                ` : ''}
+
+                                <button class="btn-acao btn-cancelar" onclick="atualizarStatus('${pedido.id}', 'cancelado')">
+                                    <i class="fas fa-times"></i> CANCELAR
+                                </button>
+                            ` : ''}
+
+                            <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
+                                <i class="fab fa-whatsapp"></i> WHATSAPP
+                            </button>
+
+                            <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
+                                <i class="fas fa-print"></i> IMPRIMIR
+                            </button>
+
+                            <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
+                                <i class="fas fa-eye"></i> DETALHES
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                template.innerHTML = html.trim();
+                const card = template.content.firstChild;
+
+                templateCache.set(cacheKey, card.cloneNode(true));
+                fragment.appendChild(card);
+            });
+
+            grid.innerHTML = '';
+            grid.appendChild(fragment);
         }
-
-        // Se tiver frete no pedido, mostra também
-        if (pedido.frete) {
-            bairroHTML += `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>`;
-        }
-
-        const html = `
-            <div class="pedido-card ${statusClass}">
-                <div class="pedido-header">
-                    <span class="pedido-numero">#${pedido.numero || pedido.id.slice(-4)}</span>
-                    <span class="pedido-status status-${statusClass}">${statusText}</span>
-                </div>
-
-                <div class="pedido-cliente">
-                    <i class="fas fa-user"></i> ${pedido.cliente?.nome || 'Cliente'}
-                </div>
-
-                <div class="pedido-info">
-                    <div><i class="far fa-clock"></i> ${horaFormatada}</div>
-                    <div><i class="fas fa-utensils"></i> ${pedido.itens?.length || 0} refeição(ões)</div>
-                    <div><i class="fas fa-credit-card"></i> ${pedido.pagamento?.toUpperCase() || 'Não informado'}</div>
-                    <div><i class="fas ${pedido.tipoEntrega === 'entrega' ? 'fa-truck' : 'fa-store'}"></i> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</div>
-                    ${bairroHTML}
-                </div>
-
-                ${pedido.frete && !bairroHTML.includes('Frete') ? `<div class="pedido-frete">🚚 Frete: R$ ${pedido.frete.toFixed(2)}</div>` : ''}
-
-                <div class="pedido-total">
-                    R$ ${(pedido.total || 0).toFixed(2)}
-                </div>
-
-                <div class="pedido-acoes">
-                    ${statusClass !== 'entregue' && statusClass !== 'cancelado' ? `
-                        ${statusClass === 'novo' ? `
-                            <button class="btn-acao btn-preparar" onclick="atualizarStatus('${pedido.id}', 'preparando')">
-                                <i class="fas fa-utensils"></i> PREPARAR
-                            </button>
-                        ` : ''}
-
-                        ${statusClass === 'preparando' ? `
-                            <button class="btn-acao btn-saiu" onclick="atualizarStatus('${pedido.id}', 'saiu')">
-                                <i class="fas fa-motorcycle"></i> SAIU
-                            </button>
-                        ` : ''}
-
-                        ${statusClass === 'saiu' ? `
-                            <button class="btn-acao btn-entregue" onclick="atualizarStatus('${pedido.id}', 'entregue')">
-                                <i class="fas fa-check"></i> ENTREGUE
-                            </button>
-                        ` : ''}
-
-                        <button class="btn-acao btn-cancelar" onclick="atualizarStatus('${pedido.id}', 'cancelado')">
-                            <i class="fas fa-times"></i> CANCELAR
-                        </button>
-                    ` : ''}
-
-                    <button class="btn-acao btn-wpp" onclick="enviarWhatsApp('${pedido.id}')">
-                        <i class="fab fa-whatsapp"></i> WhatsApp
-                    </button>
-
-                    <button class="btn-acao btn-imprimir" onclick="imprimirPedido('${pedido.id}')">
-                        <i class="fas fa-print"></i> IMPRIMIR
-                    </button>
-
-                    <button class="btn-acao btn-detalhes" onclick="verDetalhes('${pedido.id}')">
-                        <i class="fas fa-eye"></i> DETALHES
-                    </button>
-                </div>
-            </div>
-        `;
-
-        template.innerHTML = html.trim();
-        const card = template.content.firstChild;
-
-        templateCache.set(cacheKey, card.cloneNode(true));
-        fragment.appendChild(card);
-    });
-
-    grid.innerHTML = '';
-    grid.appendChild(fragment);
-}
 
         // ===== ATUALIZAR STATUS =====
         function atualizarStatus(pedidoId, novoStatus) {
@@ -817,7 +905,7 @@ function renderizarPedidos(pedidos) {
                 });
         }
 
-        // ===== ENVIAR WHATSAPP =====
+        // ===== ENVIAR WHATSAPP (SEM EMOJIS) =====
         function enviarWhatsApp(pedidoId) {
             const pedido = todosPedidos.find(p => p.id === pedidoId);
             if (!pedido) return;
@@ -842,28 +930,49 @@ function renderizarPedidos(pedidos) {
                 'cancelado': 'foi cancelado'
             }[pedido.status] || 'está em processamento';
 
-            let mensagem = `🍽️ *40 GRAUS*\n\nOlá *${pedido.cliente?.nome}*, tudo bem?\n\nSeu pedido *#${pedido.numero || pedido.id.slice(-4)}* ${statusMsg}.`;
+            let mensagem = `40 GRAUS\n\nOlá ${pedido.cliente?.nome}, tudo bem?\n\nSeu pedido #${pedido.numero || pedido.id.slice(-4)} ${statusMsg}.`;
             
             if (pedido.frete) {
-                mensagem += `\n\n💰 *Subtotal:* R$ ${(pedido.total - pedido.frete).toFixed(2)}`;
-                mensagem += `\n🚚 *Frete:* R$ ${pedido.frete.toFixed(2)}`;
-                mensagem += `\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}`;
+                mensagem += `\n\nSubtotal: R$ ${(pedido.total - pedido.frete).toFixed(2)}`;
+                mensagem += `\nFrete: R$ ${pedido.frete.toFixed(2)}`;
+                mensagem += `\nTotal: R$ ${pedido.total?.toFixed(2)}`;
             } else {
-                mensagem += `\n\n💰 *Total:* R$ ${pedido.total?.toFixed(2)}`;
+                mensagem += `\n\nTotal: R$ ${pedido.total?.toFixed(2)}`;
             }
             
-            mensagem += `\n\nAgradecemos pela preferência! 🙏`;
+            mensagem += `\n\nAgradecemos pela preferência!`;
 
             window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
         }
 
-        // ===== IMPRIMIR PEDIDO =====
+        // ===== IMPRIMIR PEDIDO (COM TODOS OS DADOS) =====
         function imprimirPedido(pedidoId) {
             const pedido = todosPedidos.find(p => p.id === pedidoId);
             if (!pedido) return;
 
             const janelaImpressao = window.open('', '_blank');
             
+            let itensHtml = '';
+            let subtotal = 0;
+
+            pedido.itens?.forEach((item, idx) => {
+                itensHtml += `
+                    <div style="margin: 10px 0; border-bottom: 1px dotted #000; padding-bottom: 5px;">
+                        <strong>REFEIÇÃO ${idx + 1}</strong>
+                `;
+                
+                if (item.carnes?.length) itensHtml += `<div>🥩 Carnes: ${item.carnes.join(', ')}</div>`;
+                if (item.acompanhamentos?.length) itensHtml += `<div>🍚 Acompanhamentos: ${item.acompanhamentos.join(', ')}</div>`;
+                if (item.feijoes?.length) itensHtml += `<div>🫘 Feijões: ${item.feijoes.join(', ')}</div>`;
+                if (item.saladas?.length) itensHtml += `<div>🥗 Saladas: ${item.saladas.join(', ')}</div>`;
+                if (item.observacao) itensHtml += `<div>📝 Obs: ${item.observacao}</div>`;
+                
+                itensHtml += `</div>`;
+                subtotal += 25.90;
+            });
+
+            const enderecoCompleto = getEnderecoCompleto(pedido);
+
             janelaImpressao.document.write(`
                 <html>
                 <head>
@@ -873,12 +982,11 @@ function renderizarPedidos(pedidos) {
                         .header { text-align: center; margin-bottom: 10px; }
                         .header h1 { font-size: 16px; margin: 0; color: #800020; }
                         .linha { border-top: 1px dashed #000; margin: 5px 0; }
-                        .item { margin: 5px 0; }
-                        .subtotal { text-align: right; font-weight: bold; margin: 5px 0; border-top: 1px dotted #000; padding-top: 3px; }
                         .total { font-size: 14px; font-weight: bold; text-align: right; border-top: 2px solid #000; padding-top: 5px; margin-top: 5px; }
                         .footer { text-align: center; margin-top: 10px; font-size: 10px; }
                         table { width: 100%; }
                         td { padding: 2px 0; }
+                        .endereco { margin: 5px 0; font-size: 11px; }
                     </style>
                 </head>
                 <body>
@@ -891,58 +999,29 @@ function renderizarPedidos(pedidos) {
                     <div class="linha"></div>
                     
                     <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
-                    ${pedido.cliente?.bairro ? `<p><strong>Bairro:</strong> ${typeof pedido.cliente.bairro === 'object' ? pedido.cliente.bairro.nome : pedido.cliente.bairro}</p>` : ''}
+                    <p><strong>Telefone:</strong> ${pedido.cliente?.telefone || 'N/A'}</p>
                     <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
+                    <p><strong>Tipo:</strong> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</p>
+                    
+                    ${pedido.tipoEntrega === 'entrega' ? `
+                        <div class="endereco">
+                            <strong>Endereço:</strong><br>
+                            ${enderecoCompleto}
+                        </div>
+                    ` : ''}
                     
                     <div class="linha"></div>
                     
                     <h3>ITENS</h3>
-            `);
-
-            let subtotal = 0;
-
-            pedido.itens?.forEach((item, idx) => {
-                janelaImpressao.document.write(`
-                    <div class="item">
-                        <strong>REFEIÇÃO ${idx + 1}</strong>
-                        <table>
-                `);
-                
-                if (item.carnes?.length) {
-                    janelaImpressao.document.write(`<tr><td>🥩 ${item.carnes.join(', ')}</td></tr>`);
-                }
-                if (item.acompanhamentos?.length) {
-                    janelaImpressao.document.write(`<tr><td>🍚 ${item.acompanhamentos.join(', ')}</td></tr>`);
-                }
-                if (item.feijoes?.length) {
-                    janelaImpressao.document.write(`<tr><td>🫘 ${item.feijoes.join(', ')}</td></tr>`);
-                }
-                if (item.saladas?.length) {
-                    janelaImpressao.document.write(`<tr><td>🥗 ${item.saladas.join(', ')}</td></tr>`);
-                }
-                if (item.observacao) {
-                    janelaImpressao.document.write(`<tr><td>📝 ${item.observacao}</td></tr>`);
-                }
-                
-                janelaImpressao.document.write(`</table></div>`);
-                subtotal += 25.90; // Valor base do prato
-            });
-
-            if (pedido.frete) {
-                janelaImpressao.document.write(`
-                    <div class="item">
-                        <table>
-                            <tr>
-                                <td>🚚 Frete</td>
-                                <td class="preco">R$ ${pedido.frete.toFixed(2)}</td>
-                            </tr>
-                        </table>
-                    </div>
-                `);
-            }
-
-            janelaImpressao.document.write(`
-                    <div class="linha"></div>
+                    ${itensHtml}
+                    
+                    ${pedido.frete ? `
+                        <div style="text-align: right; margin-top: 10px;">
+                            <div>Subtotal: R$ ${(pedido.total - pedido.frete).toFixed(2)}</div>
+                            <div>Frete: R$ ${pedido.frete.toFixed(2)}</div>
+                        </div>
+                    ` : ''}
+                    
                     <div class="total">
                         TOTAL: R$ ${pedido.total?.toFixed(2)}
                     </div>
@@ -964,26 +1043,21 @@ function renderizarPedidos(pedidos) {
             janelaImpressao.document.close();
         }
 
-        // ===== VER DETALHES =====
+        // ===== VER DETALHES (COM TODOS OS DADOS) =====
         function verDetalhes(pedidoId) {
             const pedido = todosPedidos.find(p => p.id === pedidoId);
             if (!pedido) return;
 
+            const enderecoCompleto = getEnderecoCompleto(pedido);
+
             let html = '<table>';
             html += `<tr><td>Número:</td><td><strong>#${pedido.numero || pedido.id.slice(-4)}</strong></td></tr>`;
             html += `<tr><td>Cliente:</td><td><strong>${pedido.cliente?.nome || 'N/A'}</strong></td></tr>`;
+            html += `<tr><td>Telefone:</td><td>${pedido.cliente?.telefone || 'N/A'}</td></tr>`;
             html += `<tr><td>Data:</td><td>${new Date(pedido.data).toLocaleString('pt-BR')}</td></tr>`;
             
-            if (pedido.cliente?.bairro) {
-                let nomeBairro = pedido.cliente.bairro;
-                if (typeof nomeBairro === 'object' && nomeBairro.nome) {
-                    nomeBairro = nomeBairro.nome;
-                }
-                html += `<tr><td>Bairro:</td><td>${nomeBairro}</td></tr>`;
-            }
-            
-            if (pedido.cliente?.endereco) {
-                html += `<tr><td>Endereço:</td><td>${pedido.cliente.endereco.rua || ''}, ${pedido.cliente.endereco.numero || ''}</td></tr>`;
+            if (pedido.tipoEntrega === 'entrega') {
+                html += `<tr><td>Endereço:</td><td>${enderecoCompleto}</td></tr>`;
             }
             
             html += `<tr><td>Pagamento:</td><td>${pedido.pagamento?.toUpperCase() || 'N/A'}</td></tr>`;
@@ -993,18 +1067,20 @@ function renderizarPedidos(pedidos) {
                 html += `<tr><td>Frete:</td><td>R$ ${pedido.frete.toFixed(2)}</td></tr>`;
             }
             
-            html += '</table><h3 style="color:#800020;">Itens:</h3><table>';
+            html += '</table><h3>ITENS</h3>';
             
             pedido.itens?.forEach((item, idx) => {
-                html += `<tr><td colspan="2"><strong>Refeição ${idx + 1}</strong></td></tr>`;
-                if (item.carnes?.length) html += `<tr><td>Carnes:</td><td>${item.carnes.join(', ')}</td></tr>`;
-                if (item.acompanhamentos?.length) html += `<tr><td>Acompanhamentos:</td><td>${item.acompanhamentos.join(', ')}</td></tr>`;
-                if (item.feijoes?.length) html += `<tr><td>Feijões:</td><td>${item.feijoes.join(', ')}</td></tr>`;
-                if (item.saladas?.length) html += `<tr><td>Saladas:</td><td>${item.saladas.join(', ')}</td></tr>`;
-                if (item.observacao) html += `<tr><td>Obs:</td><td>${item.observacao}</td></tr>`;
+                html += `<div class="item-detalhe">`;
+                html += `<strong>Refeição ${idx + 1}</strong>`;
+                if (item.carnes?.length) html += `<div><span style="color:#800020;">Carnes:</span> ${item.carnes.join(', ')}</div>`;
+                if (item.acompanhamentos?.length) html += `<div><span style="color:#800020;">Acompanhamentos:</span> ${item.acompanhamentos.join(', ')}</div>`;
+                if (item.feijoes?.length) html += `<div><span style="color:#800020;">Feijões:</span> ${item.feijoes.join(', ')}</div>`;
+                if (item.saladas?.length) html += `<div><span style="color:#800020;">Saladas:</span> ${item.saladas.join(', ')}</div>`;
+                if (item.observacao) html += `<div><span style="color:#800020;">Obs:</span> ${item.observacao}</div>`;
+                html += `</div>`;
             });
             
-            html += `<tr><td colspan="2" style="border-top:2px solid #800020;"><strong>Total: R$ ${pedido.total?.toFixed(2)}</strong></td></tr></table>`;
+            html += `<h3 style="text-align:right; border-top:2px solid #800020; padding-top:10px;">Total: R$ ${pedido.total?.toFixed(2)}</h3>`;
 
             document.getElementById('detalhesConteudo').innerHTML = html;
             document.getElementById('modalDetalhes').style.display = 'flex';
@@ -1051,7 +1127,6 @@ function renderizarPedidos(pedidos) {
         function carregarBairros() {
             const lista = document.getElementById('bairrosLista');
             
-            // Busca cidades GLOBAIS
             database.ref('bairros_globais').once('value', (snapshot) => {
                 const cidades = snapshot.val() || {};
                 
@@ -1075,7 +1150,6 @@ function renderizarPedidos(pedidos) {
                 
                 lista.innerHTML = html;
                 
-                // Carrega bairros da primeira cidade
                 mudarCidade();
             });
         }
@@ -1088,7 +1162,6 @@ function renderizarPedidos(pedidos) {
             if (ativo) {
                 inputFrete.focus();
             } else {
-                // Se desativou, remove
                 dbRef.child(`atendimento/${cidadeKey}_${bairroKey}`).remove();
             }
         }
@@ -1161,6 +1234,7 @@ function renderizarPedidos(pedidos) {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
             });
             
+            configurarAudio();
             iniciarListenerUnico();
             
             document.addEventListener('keydown', (e) => {
