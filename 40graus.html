@@ -800,6 +800,14 @@
             <h2>🛒 SEU PEDIDO</h2>
             <div class="lista-pedido" id="listaPedidos">Nenhum item adicionado</div>
 
+            <!-- ===== ENDEREÇOS SALVOS AGORA VEM AQUI, ANTES DOS DADOS DO PEDIDO ===== -->
+           <div class="enderecos-salvos" id="enderecosSalvosSection" style="display: none;">
+          <h4>📍 Endereços Salvos</h4>
+           <div class="enderecos-list" id="enderecosList"></div>
+          </div>
+
+            <div class="cliente-form">
+
             <div class="cliente-form">
                 <h3>👤 Dados do Pedido</h3>
                 
@@ -858,10 +866,6 @@
                     <textarea id="referencia" rows="2" placeholder="Ex: próximo ao mercado..."></textarea>
 
                     <!-- ENDEREÇOS SALVOS -->
-                    <div class="enderecos-salvos" id="enderecosSalvosSection" style="display: none;">
-                        <h4>📍 Endereços Salvos</h4>
-                        <div class="enderecos-list" id="enderecosList"></div>
-                    </div>
 
                     <button class="btn-salvar-endereco" onclick="salvarEndereco()">💾 Salvar este endereço</button>
                 </div>
