@@ -2352,13 +2352,26 @@ function enviarWhatsApp() {
             }
         }
 
-        function atualizarData() {
-            const data = new Date();
-            const dia = String(data.getDate()).padStart(2, '0');
-            const mes = String(data.getMonth() + 1).padStart(2, '0');
-            const ano = data.getFullYear();
-            document.getElementById('dataMenu').innerHTML = `📅 ${dia}/${mes}/${ano}`;
+         function atualizarData() {
+         try {
+        const data = new Date();
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+        console.log('📅 Data atual:', dataFormatada); // Log para debug
+        
+        const elementoData = document.getElementById('dataMenu');
+        if (elementoData) {
+            elementoData.innerHTML = `📅 ${dataFormatada}`;
+        } else {
+            console.error('Elemento dataMenu não encontrado!');
         }
+          } catch (error) {
+        console.error('Erro ao atualizar data:', error);
+          }
+       }
 
         // ===== EVENT LISTENERS =====
         document.getElementById('horaAbre').addEventListener('change', function() {
@@ -2414,6 +2427,11 @@ function enviarWhatsApp() {
             carregarDados();
             carregarDadosCliente();
             carregarEnderecosLocalStorage();
+              // Pequeno atraso para garantir que o DOM esteja pronto
+                  setTimeout(() => {
+                      atualizarData();
+                  }, 100);
+                  
             atualizarData();
             verificarHorario();
             atualizarInterfaceAdmin();
