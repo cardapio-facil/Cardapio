@@ -1859,9 +1859,7 @@ function carregarDadosCliente() {
                         document.getElementById('bairro').value = endereco.bairro || '';
                         document.getElementById('referencia').value = endereco.referencia || '';
                            
-                        if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
-                           buscarFretePorBairro(endereco.bairro, false); // false = mostra alerta se não atendido
-                            }
+                    
 
                         // ===== CORREÇÃO: Só buscar CEP se ele existir e tiver 8 dígitos =====
                         if (endereco.cep && endereco.cep.replace(/\D/g, '').length === 8) {
