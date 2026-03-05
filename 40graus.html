@@ -1795,18 +1795,18 @@ function renderizarCardapio() {
                 totalPratos += subtotal;
             });
 
-            let taxa = 0;
-            if (document.getElementById('tipoEntrega').value === 'entrega') {
-                if (CONFIG.TIPO_FRETE === 'fixo') {
-                    taxa = CONFIG.VALOR_FRETE_FIXO;
-                } else {
-                    // Pega do campo frete
-                    const freteField = document.getElementById('freteValor');
-                    if (freteField.dataset.valor) {
-                        taxa = parseFloat(freteField.dataset.valor) || 0;
-                    }
-                }
-            }
+          let taxaEntrega = 0;
+if (document.getElementById('tipoEntrega').value === 'entrega') {
+        if (CONFIG.TIPO_FRETE === 'fixo') {
+                taxaEntrega = CONFIG.VALOR_FRETE_FIXO;
+        } else {
+                // Pega do campo frete (dataset.valor)
+                const freteField = document.getElementById('freteValor');
+                taxaEntrega = parseFloat(freteField.dataset.valor) || 0;
+        }
+}
+
+const totalFinal = totalPratos + taxaEntrega;
             
             document.getElementById('totalFinal').innerHTML = `Total: R$ ${(totalPratos + taxa).toFixed(2)}`;
             return totalPratos + taxa;
@@ -2261,8 +2261,7 @@ function enviarWhatsApp() {
 
     const taxaEntrega = document.getElementById('tipoEntrega').value === 'entrega' ? 7 : 0;
     const totalFinal = totalPratos + taxaEntrega;
-
-    // ===== MONTAR OBJETO DO PEDIDO =====
+// ===== MONTAR OBJETO DO PEDIDO =====
     const pedidoData = {
         numero: numeroPedido,
         data: new Date().toISOString(),
@@ -2282,7 +2281,7 @@ function enviarWhatsApp() {
         },
         itens: pedidosAtuais,
         total: totalFinal,
-        taxaEntrega: taxaEntrega,
+        frete: taxaEntrega, // ← IMPORTANTE: salvar como 'frete' não 'taxaEntrega'
         pagamento: document.getElementById('pagamento').value,
         troco: document.getElementById('trocoValor').value || null,
         tipoEntrega: document.getElementById('tipoEntrega').value,
