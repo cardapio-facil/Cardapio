@@ -1054,12 +1054,11 @@ function imprimirPedido(pedidoId) {
         });
 
 
-        // Calcular taxa de entrega
-        let taxa = 0;
-        if (pedido.tipoEntrega === 'entrega') {
-                taxa = pedido.frete || 0;
-        }
-
+let taxa = 0;
+if (pedido.tipoEntrega === 'entrega') {
+    // Tenta diferentes possibilidades de onde pode estar o frete
+    taxa = pedido.frete || pedido.valorFrete || pedido.entrega?.valor || 0;
+}
 
         // Endereço completo
         const enderecoCompleto = getEnderecoCompleto(pedido);
