@@ -1175,17 +1175,13 @@ function imprimirPedido(pedidoId) {
             <div class="linha"></div>
             
              <div class="resumo">
-                <div style="text-align: right;">🧾 Subtotal Itens: R$ ${totalPratos.toFixed(2)}</div>
-                ${pedido.tipoEntrega === 'entrega' ? `
-                    ${taxa > 0 ? `
-             <div style="text-align: right;">🚚 Frete: R$ ${taxa.toFixed(2)}</div>
-                    ` : `
-             <div style="text-align: right;">🚚 Frete: Grátis</div>
-                    `}
-                ` : `
-                    <div style="text-align: right;">🏃 Retirada no local</div>
-                `}
-            </div>
+                 <div style="text-align: right;">🧾 Subtotal Itens: R$ ${totalPratos.toFixed(2)}</div>
+                 ${pedido.tipoEntrega === 'entrega' ? `
+                     <div style="text-align: right;">🚚 Frete: R$ ${taxa.toFixed(2)}</div>
+                 ` : `
+                     <div style="text-align: right;">🏃 Retirada no local</div>
+                 `}
+             </div>
             
             <div class="total-geral">
                 💰 TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}
