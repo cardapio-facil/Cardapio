@@ -955,104 +955,255 @@
             window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
         }
 
-        // ===== IMPRIMIR PEDIDO (COM TODOS OS DADOS) =====
-        function imprimirPedido(pedidoId) {
-            const pedido = todosPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
+        // ===== IMPRIMIR PEDIDO COM TODOS OS DETALHES =====
+function imprimirPedido(pedidoId) {
+        const pedido = todosPedidos.find(p => p.id === pedidoId);
+        if (!pedido) return;
 
-            const janelaImpressao = window.open('', '_blank');
-            
-            let itensHtml = '';
-            let subtotal = 0;
 
-            pedido.itens?.forEach((item, idx) => {
-                itensHtml += `
-                    <div style="margin: 10px 0; border-bottom: 1px dotted #000; padding-bottom: 5px;">
-                        <strong>REFEIÇÃO ${idx + 1}</strong>
-                `;
-                
-                if (item.carnes?.length) itensHtml += `<div>🥩 Carnes: ${item.carnes.join(', ')}</div>`;
-                if (item.acompanhamentos?.length) itensHtml += `<div>🍚 Acompanhamentos: ${item.acompanhamentos.join(', ')}</div>`;
-                if (item.feijoes?.length) itensHtml += `<div>🫘 Feijões: ${item.feijoes.join(', ')}</div>`;
-                if (item.saladas?.length) itensHtml += `<div>🥗 Saladas: ${item.saladas.join(', ')}</div>`;
-                if (item.observacao) itensHtml += `<div>📝 Obs: ${item.observacao}</div>`;
-                
-                itensHtml += `</div>`;
-                subtotal += 25.90;
-            });
+        const janelaImpressao = window.open('', '_blank');
 
-            const enderecoCompleto = getEnderecoCompleto(pedido);
 
-            janelaImpressao.document.write(`
-                <html>
-                <head>
-                    <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
-                    <style>
-                        body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; margin: 0 auto; padding: 5px; }
-                        .header { text-align: center; margin-bottom: 10px; }
-                        .header h1 { font-size: 16px; margin: 0; color: #800020; }
-                        .linha { border-top: 1px dashed #000; margin: 5px 0; }
-                        .total { font-size: 14px; font-weight: bold; text-align: right; border-top: 2px solid #000; padding-top: 5px; margin-top: 5px; }
-                        .footer { text-align: center; margin-top: 10px; font-size: 10px; }
-                        table { width: 100%; }
-                        td { padding: 2px 0; }
-                        .endereco { margin: 5px 0; font-size: 11px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>40 GRAUS</h1>
-                        <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
-                        <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
-                    </div>
-                    
-                    <div class="linha"></div>
-                    
-                    <p><strong>Cliente:</strong> ${pedido.cliente?.nome || 'N/A'}</p>
-                    <p><strong>Telefone:</strong> ${pedido.cliente?.telefone || 'N/A'}</p>
-                    <p><strong>Pagamento:</strong> ${pedido.pagamento?.toUpperCase() || 'N/A'}</p>
-                    <p><strong>Tipo:</strong> ${pedido.tipoEntrega === 'entrega' ? 'Entrega' : 'Retirada'}</p>
-                    
-                    ${pedido.tipoEntrega === 'entrega' ? `
-                        <div class="endereco">
-                            <strong>Endereço:</strong><br>
-                            ${enderecoCompleto}
-                        </div>
-                    ` : ''}
-                    
-                    <div class="linha"></div>
-                    
-                    <h3>ITENS</h3>
-                    ${itensHtml}
-                    
-                    ${pedido.frete ? `
-                        <div style="text-align: right; margin-top: 10px;">
-                            <div>Subtotal: R$ ${(pedido.total - pedido.frete).toFixed(2)}</div>
-                            <div>Frete: R$ ${pedido.frete.toFixed(2)}</div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="total">
-                        TOTAL: R$ ${pedido.total?.toFixed(2)}
-                    </div>
-                    
-                    <div class="footer">
-                        Obrigado pela preferência!
-                    </div>
-                    
-                    <script>
-                        window.onload = function() { 
-                            window.print(); 
-                            setTimeout(() => window.close(), 1000); 
-                        };
-                    <\/script>
-                </body>
-                </html>
-            `);
-            
-            janelaImpressao.document.close();
+        const valorPrato = 25.90; // Valor base do prato
+        let totalPratos = 0;
+        let itensHtml = '';
+
+
+        // Processar cada refeição
+        pedido.itens?.forEach((item, idx) => {
+                let subtotalItem = valorPrato;
+
+
+                let itemHtml = `
+            <div style="margin: 15px 0; border-bottom: 1px dashed #800020; padding-bottom: 10px;">
+                <div style="font-weight: bold; color: #800020; margin-bottom: 5px;">━━━━━━ REFEIÇÃO ${idx + 1} ━━━━━━</div>
+        `;
+
+
+                // Carnes
+                if (item.carnes?.length) {
+                        itemHtml += `<div style="margin-left: 10px;">🥩 Carne: ${item.carnes.join(', ')}</div>`;
+                }
+
+
+                // Acompanhamentos
+                if (item.acompanhamentos?.length) {
+                        itemHtml += `<div style="margin-left: 10px;">🍚 Acompanhamentos: ${item.acompanhamentos.join(', ')}</div>`;
+
+
+                        // Verifica se tem "Sem Arroz" (adicional)
+                        if (item.acompanhamentos.includes('Sem Arroz')) {
+                                const valorSemArroz = 2.00; // Ajuste conforme seu valor
+                                itemHtml += `<div style="margin-left: 20px;">└─ + Sem Arroz: R$ ${valorSemArroz.toFixed(2)}</div>`;
+                                subtotalItem += valorSemArroz;
+                        }
+                }
+
+
+                // Feijões
+                if (item.feijoes?.length) {
+                        itemHtml += `<div style="margin-left: 10px;">🫘 Feijão: ${item.feijoes.join(', ')}</div>`;
+                }
+
+
+                // Saladas
+                if (item.saladas?.length) {
+                        itemHtml += `<div style="margin-left: 10px;">🥗 Salada: ${item.saladas.join(', ')}</div>`;
+                }
+
+
+                // Guarnições (se houver)
+                if (item.guarnicoes?.length) {
+                        itemHtml += `<div style="margin-left: 10px;">🍟 Guarnição: ${item.guarnicoes.join(', ')}</div>`;
+                }
+
+
+                // Bebidas (se houver)
+                if (item.bebidas?.length) {
+                        item.bebidas.forEach(b => {
+                                itemHtml += `<div style="margin-left: 10px;">🥤 ${b.nome}: R$ ${b.valor.toFixed(2)}</div>`;
+                                subtotalItem += b.valor;
+                        });
+                }
+
+
+                // Acréscimos (se houver)
+                if (item.acrescimos?.length) {
+                        item.acrescimos.forEach(a => {
+                                itemHtml += `<div style="margin-left: 10px;">➕ ${a.nome}: R$ ${a.valor.toFixed(2)}</div>`;
+                                subtotalItem += a.valor;
+                        });
+                }
+
+
+                // Observação
+                if (item.observacao) {
+                        itemHtml += `<div style="margin-left: 10px;">📝 Obs: ${item.observacao}</div>`;
+                }
+
+
+                itemHtml += `
+                <div style="border-top: 1px dotted #800020; margin: 5px 0; padding-top: 5px;"></div>
+                <div style="text-align: right; font-weight: bold;">💵 Subtotal Refeição ${idx + 1}: R$ ${subtotalItem.toFixed(2)}</div>
+            </div>
+        `;
+
+
+                itensHtml += itemHtml;
+                totalPratos += subtotalItem;
+        });
+
+
+        // Calcular taxa de entrega
+        let taxa = 0;
+        if (pedido.tipoEntrega === 'entrega') {
+                taxa = pedido.frete || 0;
         }
 
+
+        // Endereço completo
+        const enderecoCompleto = getEnderecoCompleto(pedido);
+
+
+        janelaImpressao.document.write(`
+        <html>
+        <head>
+            <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
+            <style>
+                body { 
+                    font-family: 'Courier New', monospace; 
+                    font-size: 12px; 
+                    width: 80mm; 
+                    margin: 0 auto; 
+                    padding: 5px;
+                }
+                .header { 
+                    text-align: center; 
+                    margin-bottom: 15px;
+                    border-bottom: 2px solid #800020;
+                    padding-bottom: 10px;
+                }
+                .header h1 { 
+                    font-size: 18px; 
+                    margin: 0; 
+                    color: #800020;
+                }
+                .header h2 {
+                    font-size: 16px;
+                    margin: 5px 0;
+                }
+                .info-cliente {
+                    margin: 15px 0;
+                    padding: 10px;
+                    background: #f5f5f5;
+                    border-radius: 5px;
+                }
+                .info-cliente div {
+                    margin: 3px 0;
+                }
+                .linha {
+                    border-top: 1px dashed #800020;
+                    margin: 10px 0;
+                }
+                .total-geral {
+                    font-size: 16px;
+                    font-weight: bold;
+                    text-align: right;
+                    border-top: 2px solid #800020;
+                    border-bottom: 2px solid #800020;
+                    padding: 10px 0;
+                    margin: 15px 0;
+                    background: #fafafa;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 20px;
+                    font-size: 11px;
+                    border-top: 1px dashed #800020;
+                    padding-top: 10px;
+                }
+                .label {
+                    font-weight: bold;
+                    color: #800020;
+                }
+                .resumo {
+                    margin: 15px 0;
+                }
+                .resumo div {
+                    margin: 3px 0;
+                }
+                .destaque {
+                    font-weight: bold;
+                    color: #800020;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🍽️ 40 GRAUS</h1>
+                <h2>NOVO PEDIDO</h2>
+                <p>Pedido #${pedido.numero || pedido.id.slice(-4)}</p>
+                <p>${new Date(pedido.data).toLocaleString('pt-BR')}</p>
+            </div>
+            
+            <div class="info-cliente">
+                <div><span class="label">👤 Cliente:</span> ${pedido.cliente?.nome || 'N/A'}</div>
+                <div><span class="label">📞 Telefone:</span> ${pedido.cliente?.telefone || 'N/A'}</div>
+                
+                ${pedido.tipoEntrega === 'entrega' ? `
+                    <div style="margin-top: 8px;"><span class="label">📍 Endereço:</span> ${enderecoCompleto}</div>
+                    <div><span class="label">🏘️ Bairro:</span> ${pedido.cliente?.endereco?.bairro || pedido.cliente?.bairro || 'N/A'}</div>
+                    ${pedido.cliente?.endereco?.cidade ? `<div><span class="label">🏙️ Cidade:</span> ${pedido.cliente.endereco.cidade}</div>` : ''}
+                ` : `
+                    <div style="margin-top: 8px;"><span class="label">🏃 Retirada no local</span></div>
+                `}
+            </div>
+            
+            <div class="info-cliente">
+                <div><span class="label">💳 Pagamento:</span> ${pedido.pagamento?.toUpperCase() || 'N/A'}</div>
+                ${pedido.pagamento === 'dinheiro' && pedido.troco ? `
+                    <div><span class="label">💰 Troco:</span> R$ ${pedido.troco.toFixed(2)}</div>
+                ` : ''}
+            </div>
+            
+            <div class="linha"></div>
+            
+            <div style="font-weight: bold; text-align: center; margin: 10px 0;">📋 ITENS DO PEDIDO</div>
+            
+            ${itensHtml}
+            
+            <div class="linha"></div>
+            
+            <div class="resumo">
+                <div style="text-align: right;">🧾 Subtotal Itens: R$ ${totalPratos.toFixed(2)}</div>
+                ${taxa > 0 ? `
+                    <div style="text-align: right;">🚚 Taxa de Entrega: R$ ${taxa.toFixed(2)}</div>
+                ` : ''}
+            </div>
+            
+            <div class="total-geral">
+                💰 TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}
+            </div>
+            
+            <div class="footer">
+                Obrigado pela preferência!<br>
+                ~~~~~~~~~~~~~~~~~~~~~~~~<br>
+               Restaurante 40 GRAUS 
+            </div>
+            
+            <script>
+                window.onload = function() { 
+                    window.print(); 
+                    setTimeout(() => window.close(), 1000); 
+                };
+            <\/script>
+          </body>
+          </html>
+       `);
+
+
+        janelaImpressao.document.close();
+        }
         // ===== VER DETALHES (COM TODOS OS DADOS) =====
         function verDetalhes(pedidoId) {
             const pedido = todosPedidos.find(p => p.id === pedidoId);
