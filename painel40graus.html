@@ -199,32 +199,37 @@
             text-align: right;
             margin-top: -5px;
         }
-
+                
         .pedido-acoes {
-            display: flex;
-            gap: 8px;
+         display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+            gap: 5px;
             margin-top: 15px;
-            flex-wrap: wrap;
+            margin-top: 15px;
         }
+    .btn-acao {
+    width: 100%;
+    padding: 8px 2px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 0.7rem;
+    text-align: center;
+    line-height: 1.1;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
 
-        .btn-acao {
-         flex: 1;
-         padding: 8px 4px;
-         border: none;
-         border-radius: 6px;
-         cursor: pointer;
-         font-weight: 600;
-         transition: all 0.3s;
-         display: flex;
-         align-items: center;
-         justify-content: center;
-         gap: 4px;
-         min-width: 65px;
-         font-size: 0.75rem;
-         text-align: center;
-         line-height: 1.2;
-         white-space: nowrap;
-        }
+.btn-acao i {
+    font-size: 0.7rem;
+    margin-right: 2px;
+}
 
 
         .btn-acao i {
@@ -402,24 +407,22 @@
             border-left: 3px solid #800020;
         }
 
-        @media (max-width: 768px) {
-            .pedidos-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .btn-acao {
-                font-size: 0.7rem;
-                padding: 6px 3px;
-            }
-            
-            .status-info {
-                justify-content: center;
-            }
-            
-            .btn-acao i {
-                font-size: 0.7rem;
-            }
-        }
+@media (max-width: 768px) {
+    .pedido-acoes {
+        grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+        gap: 3px;
+    }
+    
+    .btn-acao {
+        font-size: 0.65rem;
+        padding: 6px 1px;
+    }
+    
+    .btn-acao i {
+        font-size: 0.65rem;
+        margin-right: 1px;
+    }
+}
     </style>
 </head>
 <body>
