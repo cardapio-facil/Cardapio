@@ -1895,32 +1895,51 @@ function renderizarCardapio() {
             }
         }
 
-        function selecionarEndereco(index) {
-            const nome = document.getElementById('nomeCliente').value.trim();
-            if (!nome || !enderecosClientes[nome]) return;
-            
-            const endereco = enderecosClientes[nome][index];
-            
-            document.getElementById('telefone').value = endereco.telefone || '';
-            document.getElementById('cep').value = endereco.cep || '';
-            document.getElementById('cidade').value = endereco.cidade || '';
-            document.getElementById('rua').value = endereco.rua || '';
-            document.getElementById('numero').value = endereco.numero || '';
-            document.getElementById('complemento').value = endereco.complemento || '';
-            document.getElementById('bairro').value = endereco.bairro || '';
-            document.getElementById('referencia').value = endereco.referencia || '';
-            
-            if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
-                buscarFretePorBairro(endereco.bairro);
-            }
-            
-            ultimoEnderecoSelecionado = endereco;
-            localStorage.setItem('ultimoEndereco_' + RESTAURANTE_ID, JSON.stringify(endereco));
-            
-            document.querySelectorAll('.endereco-item').forEach(el => el.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+    function selecionarEndereco(index) {
+        const nome = document.getElementById('nomeCliente').value.trim();
+
+        if (!nome || !enderecosClientes[nome]) return;
+
+
+        const endereco = enderecosClientes[nome][index];
+
+
+        // Preencher todos os campos
+        document.getElementById('telefone').value = endereco.telefone || '';
+        document.getElementById('cep').value = endereco.cep || '';
+        document.getElementById('cidade').value = endereco.cidade || '';
+        document.getElementById('rua').value = endereco.rua || '';
+        document.getElementById('numero').value = endereco.numero || '';
+        document.getElementById('complemento').value = endereco.complemento || '';
+        document.getElementById('bairro').value = endereco.bairro || '';
+        document.getElementById('referencia').value = endereco.referencia || '';
+
+
+        // Salvar telefone no localStorage
+        if (endereco.telefone) {
+                localStorage.setItem('ultimoTelefone_' + RESTAURANTE_ID, endereco.telefone);
         }
 
+
+        // Buscar frete se for por bairro
+        if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
+                buscarFretePorBairro(endereco.bairro);
+        }
+
+
+        // Salvar como último endereço selecionado
+        ultimoEnderecoSelecionado = endereco;
+        localStorage.setItem('ultimoEndereco_' + RESTAURANTE_ID, JSON.stringify(endereco));
+
+
+        // Atualizar visual da seleção
+        document.querySelectorAll('.endereco-item').forEach(el => el.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+
+
+        // Disparar evento para atualizar total (caso frete mude)
+        atualizarTotal();
+    }
         function salvarEndereco() {
             const nome = document.getElementById('nomeCliente').value.trim();
             if (!nome) {
@@ -2316,6 +2335,13 @@ function enviarWhatsApp() {
                 document.getElementById('freteValor').value = `R$ ${CONFIG.VALOR_FRETE_FIXO.toFixed(2)}`;
                 document.getElementById('freteValor').dataset.valor = CONFIG.VALOR_FRETE_FIXO;
             }
+            // Salvar telefone automaticamente quando digitado
+           document.getElementById('telefone').addEventListener('input', function() {
+               const telefone = this.value.trim();
+               if (telefone) {
+         localStorage.setItem('ultimoTelefone_' + RESTAURANTE_ID, telefone);
+    }
+});
         };
     </script>
 </body>
