@@ -1511,57 +1511,67 @@ function renderizarCardapio() {
             atualizarTotal();
         }
 
-        // ===== BUSCA CEP E FRETE =====
-        function buscarCep() {
-            const cep = document.getElementById('cep').value.replace(/\D/g, '');
-            
-            if (cep.length === 8) {
-                fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.erro) {
-                            document.getElementById('rua').value = data.logradouro || '';
-                            document.getElementById('bairro').value = data.bairro || '';
-                            document.getElementById('cidade').value = data.localidade || '';
-                            
-                            // Se for frete por bairro, buscar valor no Firebase
-                            if (CONFIG.TIPO_FRETE === 'bairro' && data.bairro) {
-                                buscarFretePorBairro(data.bairro);
-                            }
-                        } else {
-                            alert('CEP não encontrado!');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro ao buscar CEP:', error);
-                        alert('Erro ao buscar CEP. Tente novamente.');
-                    });
-            }
-        }
+    function buscarCep() {
+        const cep = document.getElementById('cep').value.replace(/\D/g, '');
 
-        function buscarFretePorBairro(nomeBairro) {
-            // Converter nome do bairro para key (formato usado no Firebase)
-            const bairroKey = nomeBairro.toLowerCase()
+
+        if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                                if (!data.erro) {
+                                        document.getElementById('rua').value = data.logradouro || '';
+                                        document.getElementById('bairro').value = data.bairro || '';
+                                        document.getElementById('cidade').value = data.localidade || '';
+
+
+                                        // Se for frete por bairro, buscar valor no Firebase (com silencioso = false para mostrar alerta)
+                                        if (CONFIG.TIPO_FRETE === 'bairro' && data.bairro) {
+                                                buscarFretePorBairro(data.bairro, false);
+                                        }
+                                } else {
+                                        alert('CEP não encontrado!');
+                                }
+                        })
+                        .catch(error => {
+                                console.error('Erro ao buscar CEP:', error);
+                                alert('Erro ao buscar CEP. Tente novamente.');
+                        });
+        }
+    }
+
+    function buscarFretePorBairro(nomeBairro, silencioso = false) {
+         // Converter nome do bairro para key (formato usado no Firebase)
+        const bairroKey = nomeBairro.toLowerCase()
                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
                 .replace(/\s+/g, '-');
-            
-            // Procurar no atendimento do restaurante
-            const cidadeKey = 'conselheiro-lafaiete'; // Ajuste conforme necessário
-            const chaveAtendimento = `${cidadeKey}_${bairroKey}`;
-            
-            const atendimento = atendimentoRestaurante[chaveAtendimento];
-            
-            if (atendimento && atendimento.ativo) {
+
+
+        // Procurar no atendimento do restaurante
+        const cidadeKey = 'conselheiro-lafaiete'; // Ajuste conforme necessário
+        const chaveAtendimento = `${cidadeKey}_${bairroKey}`;
+
+
+        const atendimento = atendimentoRestaurante[chaveAtendimento];
+
+
+        if (atendimento && atendimento.ativo) {
                 document.getElementById('freteValor').value = `R$ ${atendimento.frete.toFixed(2)}`;
                 document.getElementById('freteValor').dataset.valor = atendimento.frete;
-            } else {
+        } else {
                 document.getElementById('freteValor').value = 'Bairro não atendido';
                 document.getElementById('freteValor').dataset.valor = '0';
-                alert('Verifique a informação do CEP ou Este bairro não esta disponivel  para entrega!');
-            }
-            
-            atualizarTotal();
+
+
+                // ===== CORREÇÃO: Só mostra alerta se NÃO for silencioso (carregamento automático) =====
+                if (!silencioso) {
+                        alert('Verifique a informação do CEP ou Este bairro não esta disponivel para entrega!');
+                }
         }
+
+
+        atualizarTotal();
+    }
 
         // ===== VALIDAÇÕES =====
         function validarLimites(checkbox) {
@@ -1816,7 +1826,7 @@ function renderizarCardapio() {
             }
         }
      // ===== FUNÇÃO PARA CARREGAR TODOS OS DADOS DO CLIENTE DO LOCALSTORAGE =====
-         function carregarDadosCliente() {
+function carregarDadosCliente() {
         console.log('📂 Carregando dados do cliente...');
 
 
@@ -1848,13 +1858,22 @@ function renderizarCardapio() {
                         document.getElementById('complemento').value = endereco.complemento || '';
                         document.getElementById('bairro').value = endereco.bairro || '';
                         document.getElementById('referencia').value = endereco.referencia || '';
+                           
+                        if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
+                           buscarFretePorBairro(endereco.bairro, false); // false = mostra alerta se não atendido
+                            }
 
-
-                        // Se tiver CEP, buscar para confirmar
-                        if (endereco.cep) {
+                        // ===== CORREÇÃO: Só buscar CEP se ele existir e tiver 8 dígitos =====
+                        if (endereco.cep && endereco.cep.replace(/\D/g, '').length === 8) {
                                 setTimeout(() => {
                                         buscarCep();
                                 }, 500);
+                        } else {
+                                console.log('⚠️ CEP inválido ou vazio, não vou buscar');
+                                // Se não tiver CEP válido, pelo menos tenta calcular frete pelo bairro salvo
+                                if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
+                                        buscarFretePorBairro(endereco.bairro);
+                                }
                         }
 
 
@@ -1905,8 +1924,9 @@ function renderizarCardapio() {
                     document.getElementById('bairro').value = ultimoEnderecoSelecionado.bairro || '';
                     document.getElementById('referencia').value = ultimoEnderecoSelecionado.referencia || '';
                     
-                    if (CONFIG.TIPO_FRETE === 'bairro' && ultimoEnderecoSelecionado.bairro) {
-                        buscarFretePorBairro(ultimoEnderecoSelecionado.bairro);
+                    if (CONFIG.TIPO_FRETE === 'bairro' && endereco.bairro) {
+                     
+                      buscarFretePorBairro(endereco.bairro, true); // true = não mostra alerta
                     }
                 }
             } else {
