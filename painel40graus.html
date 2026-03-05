@@ -957,114 +957,95 @@
 
         // ===== IMPRIMIR PEDIDO COM TODOS OS DETALHES =====
 function imprimirPedido(pedidoId) {
-        const pedido = todosPedidos.find(p => p.id === pedidoId);
-        if (!pedido) return;
+    const pedido = todosPedidos.find(p => p.id === pedidoId);
+    if (!pedido) return;
 
+    const janelaImpressao = window.open('', '_blank');
 
-        const janelaImpressao = window.open('', '_blank');
+    // Pega o valor do prato do pedido (ou usa 25.90 como fallback)
+    const valorPrato = 25.90; // Valor base do prato
+    let totalPratos = 0;
+    let itensHtml = '';
 
+    // Processar cada refeição
+    pedido.itens?.forEach((item, idx) => {
+        let subtotalItem = valorPrato;
 
-        const valorPrato = 25.90; // Valor base do prato
-        let totalPratos = 0;
-        let itensHtml = '';
-
-
-        // Processar cada refeição
-        pedido.itens?.forEach((item, idx) => {
-                let subtotalItem = valorPrato;
-
-
-                let itemHtml = `
+        let itemHtml = `
             <div style="margin: 15px 0; border-bottom: 1px dashed #800020; padding-bottom: 10px;">
                 <div style="font-weight: bold; color: #800020; margin-bottom: 5px;">━━━━━━ REFEIÇÃO ${idx + 1} ━━━━━━</div>
         `;
 
+        // Carnes
+        if (item.carnes?.length) {
+            itemHtml += `<div style="margin-left: 10px;">🥩 Carne: ${item.carnes.join(', ')}</div>`;
+        }
 
-                // Carnes
-                if (item.carnes?.length) {
-                        itemHtml += `<div style="margin-left: 10px;">🥩 Carne: ${item.carnes.join(', ')}</div>`;
-                }
+        // Acompanhamentos
+        if (item.acompanhamentos?.length) {
+            itemHtml += `<div style="margin-left: 10px;">🍚 Acompanhamentos: ${item.acompanhamentos.join(', ')}</div>`;
 
+            // Verifica se tem "Sem Arroz" (adicional)
+            if (item.acompanhamentos.includes('Sem Arroz')) {
+                const valorSemArroz = 2.00; // Ajuste conforme seu valor
+                itemHtml += `<div style="margin-left: 20px;">└─ + Sem Arroz: R$ ${valorSemArroz.toFixed(2)}</div>`;
+                subtotalItem += valorSemArroz;
+            }
+        }
 
-                // Acompanhamentos
-                if (item.acompanhamentos?.length) {
-                        itemHtml += `<div style="margin-left: 10px;">🍚 Acompanhamentos: ${item.acompanhamentos.join(', ')}</div>`;
+        // Feijões
+        if (item.feijoes?.length) {
+            itemHtml += `<div style="margin-left: 10px;">🫘 Feijão: ${item.feijoes.join(', ')}</div>`;
+        }
 
+        // Saladas
+        if (item.saladas?.length) {
+            itemHtml += `<div style="margin-left: 10px;">🥗 Salada: ${item.saladas.join(', ')}</div>`;
+        }
 
-                        // Verifica se tem "Sem Arroz" (adicional)
-                        if (item.acompanhamentos.includes('Sem Arroz')) {
-                                const valorSemArroz = 2.00; // Ajuste conforme seu valor
-                                itemHtml += `<div style="margin-left: 20px;">└─ + Sem Arroz: R$ ${valorSemArroz.toFixed(2)}</div>`;
-                                subtotalItem += valorSemArroz;
-                        }
-                }
+        // Guarnições (se houver)
+        if (item.guarnicoes?.length) {
+            itemHtml += `<div style="margin-left: 10px;">🍟 Guarnição: ${item.guarnicoes.join(', ')}</div>`;
+        }
 
+        // Bebidas (se houver)
+        if (item.bebidas?.length) {
+            item.bebidas.forEach(b => {
+                itemHtml += `<div style="margin-left: 10px;">🥤 ${b.nome}: R$ ${b.valor.toFixed(2)}</div>`;
+                subtotalItem += b.valor;
+            });
+        }
 
-                // Feijões
-                if (item.feijoes?.length) {
-                        itemHtml += `<div style="margin-left: 10px;">🫘 Feijão: ${item.feijoes.join(', ')}</div>`;
-                }
+        // Acréscimos (se houver)
+        if (item.acrescimos?.length) {
+            item.acrescimos.forEach(a => {
+                itemHtml += `<div style="margin-left: 10px;">➕ ${a.nome}: R$ ${a.valor.toFixed(2)}</div>`;
+                subtotalItem += a.valor;
+            });
+        }
 
+        // Observação
+        if (item.observacao) {
+            itemHtml += `<div style="margin-left: 10px;">📝 Obs: ${item.observacao}</div>`;
+        }
 
-                // Saladas
-                if (item.saladas?.length) {
-                        itemHtml += `<div style="margin-left: 10px;">🥗 Salada: ${item.saladas.join(', ')}</div>`;
-                }
-
-
-                // Guarnições (se houver)
-                if (item.guarnicoes?.length) {
-                        itemHtml += `<div style="margin-left: 10px;">🍟 Guarnição: ${item.guarnicoes.join(', ')}</div>`;
-                }
-
-
-                // Bebidas (se houver)
-                if (item.bebidas?.length) {
-                        item.bebidas.forEach(b => {
-                                itemHtml += `<div style="margin-left: 10px;">🥤 ${b.nome}: R$ ${b.valor.toFixed(2)}</div>`;
-                                subtotalItem += b.valor;
-                        });
-                }
-
-
-                // Acréscimos (se houver)
-                if (item.acrescimos?.length) {
-                        item.acrescimos.forEach(a => {
-                                itemHtml += `<div style="margin-left: 10px;">➕ ${a.nome}: R$ ${a.valor.toFixed(2)}</div>`;
-                                subtotalItem += a.valor;
-                        });
-                }
-
-
-                // Observação
-                if (item.observacao) {
-                        itemHtml += `<div style="margin-left: 10px;">📝 Obs: ${item.observacao}</div>`;
-                }
-
-
-                itemHtml += `
+        itemHtml += `
                 <div style="border-top: 1px dotted #800020; margin: 5px 0; padding-top: 5px;"></div>
                 <div style="text-align: right; font-weight: bold;">💵 Subtotal Refeição ${idx + 1}: R$ ${subtotalItem.toFixed(2)}</div>
             </div>
         `;
 
+        itensHtml += itemHtml;
+        totalPratos += subtotalItem;
+    });
 
-                itensHtml += itemHtml;
-                totalPratos += subtotalItem;
-        });
+    // Pega o frete do pedido
+    let taxa = pedido.frete || 0;
 
+    // Endereço completo
+    const enderecoCompleto = getEnderecoCompleto(pedido);
 
-let taxa = 0;
-if (pedido.tipoEntrega === 'entrega') {
-    // Tenta diferentes possibilidades de onde pode estar o frete
-    taxa = pedido.frete || pedido.valorFrete || pedido.entrega?.valor || 0;
-}
-
-        // Endereço completo
-        const enderecoCompleto = getEnderecoCompleto(pedido);
-
-
-        janelaImpressao.document.write(`
+    janelaImpressao.document.write(`
         <html>
         <head>
             <title>Pedido #${pedido.numero || pedido.id.slice(-4)}</title>
@@ -1173,14 +1154,14 @@ if (pedido.tipoEntrega === 'entrega') {
             
             <div class="linha"></div>
             
-             <div class="resumo">
-                 <div style="text-align: right;">🧾 Subtotal Itens: R$ ${totalPratos.toFixed(2)}</div>
-                 ${pedido.tipoEntrega === 'entrega' ? `
-                     <div style="text-align: right;">🚚 Frete: R$ ${taxa.toFixed(2)}</div>
-                 ` : `
-                     <div style="text-align: right;">🏃 Retirada no local</div>
-                 `}
-             </div>
+            <div class="resumo">
+                <div style="text-align: right;">🧾 Subtotal Itens: R$ ${totalPratos.toFixed(2)}</div>
+                ${pedido.tipoEntrega === 'entrega' ? `
+                    <div style="text-align: right;">🚚 Frete: R$ ${taxa.toFixed(2)}</div>
+                ` : `
+                    <div style="text-align: right;">🏃 Retirada no local</div>
+                `}
+            </div>
             
             <div class="total-geral">
                 💰 TOTAL GERAL: R$ ${(totalPratos + taxa).toFixed(2)}
@@ -1189,7 +1170,7 @@ if (pedido.tipoEntrega === 'entrega') {
             <div class="footer">
                 Obrigado pela preferência!<br>
                 ~~~~~~~~~~~~~~~~~~~~~~~~<br>
-               Restaurante 40 GRAUS 
+                Restaurante 40 GRAUS 
             </div>
             
             <script>
@@ -1198,13 +1179,14 @@ if (pedido.tipoEntrega === 'entrega') {
                     setTimeout(() => window.close(), 1000); 
                 };
             <\/script>
-          </body>
-          </html>
-       `);
+        </body>
+        </html>
+    `);
+
+    janelaImpressao.document.close();
+}
 
 
-        janelaImpressao.document.close();
-        }
         // ===== VER DETALHES (COM TODOS OS DADOS) =====
         function verDetalhes(pedidoId) {
             const pedido = todosPedidos.find(p => p.id === pedidoId);
