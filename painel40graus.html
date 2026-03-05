@@ -963,7 +963,7 @@ function imprimirPedido(pedidoId) {
     const janelaImpressao = window.open('', '_blank');
 
     // Pega o valor do prato do pedido (ou usa 25.90 como fallback)
-    const valorPrato = valorPrato 
+    const valorPrato = 25.90; // Valor base do prato
     let totalPratos = 0;
     let itensHtml = '';
 
@@ -1185,6 +1185,7 @@ function imprimirPedido(pedidoId) {
 
     janelaImpressao.document.close();
 }
+
 
 
         // ===== VER DETALHES (COM TODOS OS DADOS) =====
