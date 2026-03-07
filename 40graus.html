@@ -1056,350 +1056,327 @@
 function renderizarCardapio() {
     console.log('🎨 Renderizando cardápio:', cardapio);
 
-    // ===== CARNES =====
-    const carnesDiv = document.getElementById('carnes');
-    carnesDiv.innerHTML = '';
-    if (cardapio.carnes && cardapio.carnes.length > 0) {
-        cardapio.carnes.forEach((item, index) => {
-            const visivel = visibilidadeItens[`carnes_${index}`] !== false;
-            if (!adminLogado && !visivel) return;
+ // ===== CARNES =====
+const carnesDiv = document.getElementById('carnes');
+carnesDiv.innerHTML = '';
+if (cardapio.carnes && cardapio.carnes.length > 0) {
+    cardapio.carnes.forEach((item, index) => {
+        const visivel = visibilidadeItens[`carnes_${index}`] !== false;
+        if (!adminLogado && !visivel) return;
 
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
 
-            // Se NÃO for admin, clica no card todo para marcar
-            if (!adminLogado) {
-                itemDiv.onclick = function(e) {
-                    // Se clicou nos botões de admin, não marca
-                    if (e.target.closest('.admin-controls')) return;
+        // SÓ adiciona evento de clique se NÃO for admin
+        if (!adminLogado) {
+            itemDiv.addEventListener('click', function(e) {
+                // Se clicou nos botões de admin, não marca (segurança)
+                if (e.target.closest('.admin-controls')) return;
+                
+                // Se clicou DIRETAMENTE no checkbox, deixa ele funcionar
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                
+                // Marca/desmarca o checkbox
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    validarLimites(checkbox);
+                }
+            });
+        }
 
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        validarLimites(checkbox);
-                    }
-                };
-            }
-
-            itemDiv.innerHTML = `
-                <input type="checkbox" value="${item}" data-categoria="carnes" data-index="${index}" onchange="validarLimites(this)">
-                <div class="item-info">
-                    <span class="item-nome">${item}</span>
+        itemDiv.innerHTML = `
+            <input type="checkbox" value="${item}" data-categoria="carnes" data-index="${index}" onchange="validarLimites(this)">
+            <div class="item-info">
+                <span class="item-nome">${item}</span>
+            </div>
+            ${adminLogado ? `
+                <div class="admin-controls" onclick="event.stopPropagation()">
+                    <button class="btn-visibilidade" onclick="toggleVisibilidade('carnes', ${index})">
+                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                    </button>
+                    <button class="btn-edit" onclick="editarItem('carnes', ${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="excluirItem('carnes', ${index})"><i class="fas fa-trash"></i></button>
                 </div>
-                ${adminLogado ? `
-                    <div class="admin-controls" onclick="event.stopPropagation()">
-                        <button class="btn-visibilidade" onclick="toggleVisibilidade('carnes', ${index})">
-                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                        <button class="btn-edit" onclick="editarItem('carnes', ${index})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-delete" onclick="excluirItem('carnes', ${index})"><i class="fas fa-trash"></i></button>
-                    </div>
-                ` : ''}
-            `;
+            ` : ''}
+        `;
 
-            carnesDiv.appendChild(itemDiv);
-        });
-    } else {
-        carnesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma carne cadastrada</p>';
-    }
-
-    // ===== ACOMPANHAMENTOS =====
-    const acompanhamentosDiv = document.getElementById('acompanhamentos');
-    acompanhamentosDiv.innerHTML = '';
-    if (cardapio.acompanhamentos && cardapio.acompanhamentos.length > 0) {
-        cardapio.acompanhamentos.forEach((item, index) => {
-            const visivel = visibilidadeItens[`acompanhamentos_${index}`] !== false;
-            if (!adminLogado && !visivel) return;
-
-            const isSemArroz = item === 'Sem Arroz';
-            const valorExibir = isSemArroz ? `<span class="item-valor">R$ ${config.valorSemArroz.toFixed(2)}</span>` : '';
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
-
-            if (!adminLogado) {
-                itemDiv.onclick = function(e) {
-                    if (e.target.closest('.admin-controls')) return;
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        validarLimites(checkbox);
-                    }
-                };
-            }
-
-            itemDiv.innerHTML = `
-                <input type="checkbox" value="${item}" data-categoria="acompanhamentos" data-index="${index}" onchange="validarLimites(this)">
-                <div class="item-info">
-                    <span class="item-nome">${item}</span>
-                    ${valorExibir}
-                </div>
-                ${adminLogado ? `
-                    <div class="admin-controls" onclick="event.stopPropagation()">
-                        <button class="btn-visibilidade" onclick="toggleVisibilidade('acompanhamentos', ${index})">
-                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                        <button class="btn-edit" onclick="editarItem('acompanhamentos', ${index})"><i class="fas fa-edit"></i></button>
-                        ${!isSemArroz ? `<button class="btn-delete" onclick="excluirItem('acompanhamentos', ${index})"><i class="fas fa-trash"></i></button>` : ''}
-                        ${isSemArroz && nivelAcesso === 'master' ? `
-                            <button class="btn-valor" onclick="editarValorSemArroz()"><i class="fas fa-dollar-sign"></i></button>
-                        ` : ''}
-                    </div>
-                ` : ''}
-            `;
-
-            acompanhamentosDiv.appendChild(itemDiv);
-        });
-    } else {
-        acompanhamentosDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum acompanhamento cadastrado</p>';
-    }
-
-    // ===== FEIJOES =====
-    const feijoesDiv = document.getElementById('feijoes');
-    feijoesDiv.innerHTML = '';
-    if (cardapio.feijoes && cardapio.feijoes.length > 0) {
-        cardapio.feijoes.forEach((item, index) => {
-            const visivel = visibilidadeItens[`feijoes_${index}`] !== false;
-            if (!adminLogado && !visivel) return;
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
-
-            if (!adminLogado) {
-                itemDiv.onclick = function(e) {
-                    if (e.target.closest('.admin-controls')) return;
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        validarLimites(checkbox);
-                    }
-                };
-            }
-
-            itemDiv.innerHTML = `
-                <input type="checkbox" value="${item}" data-categoria="feijoes" data-index="${index}" onchange="validarLimites(this)">
-                <div class="item-info">
-                    <span class="item-nome">${item}</span>
-                </div>
-                ${adminLogado ? `
-                    <div class="admin-controls" onclick="event.stopPropagation()">
-                        <button class="btn-visibilidade" onclick="toggleVisibilidade('feijoes', ${index})">
-                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                        <button class="btn-edit" onclick="editarItem('feijoes', ${index})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-delete" onclick="excluirItem('feijoes', ${index})"><i class="fas fa-trash"></i></button>
-                    </div>
-                ` : ''}
-            `;
-
-            feijoesDiv.appendChild(itemDiv);
-        });
-    } else {
-        feijoesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum feijão cadastrado</p>';
-    }
-
-    // ===== SALADAS =====
-    const saladasDiv = document.getElementById('saladas');
-    saladasDiv.innerHTML = '';
-    if (cardapio.saladas && cardapio.saladas.length > 0) {
-        cardapio.saladas.forEach((item, index) => {
-            const visivel = visibilidadeItens[`saladas_${index}`] !== false;
-            if (!adminLogado && !visivel) return;
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
-
-            if (!adminLogado) {
-                itemDiv.onclick = function(e) {
-                    if (e.target.closest('.admin-controls')) return;
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        validarLimites(checkbox);
-                    }
-                };
-            }
-
-            itemDiv.innerHTML = `
-                <input type="checkbox" value="${item}" data-categoria="saladas" data-index="${index}" onchange="validarLimites(this)">
-                <div class="item-info">
-                    <span class="item-nome">${item}</span>
-                </div>
-                ${adminLogado ? `
-                    <div class="admin-controls" onclick="event.stopPropagation()">
-                        <button class="btn-visibilidade" onclick="toggleVisibilidade('saladas', ${index})">
-                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                        <button class="btn-edit" onclick="editarItem('saladas', ${index})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-delete" onclick="excluirItem('saladas', ${index})"><i class="fas fa-trash"></i></button>
-                    </div>
-                ` : ''}
-            `;
-
-            saladasDiv.appendChild(itemDiv);
-        });
-    } else {
-        saladasDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma salada cadastrada</p>';
-    }
-
-    // ===== GUARNIÇÕES =====
-    const guarnicoesDiv = document.getElementById('guarnicoes');
-    guarnicoesDiv.innerHTML = '';
-    if (cardapio.guarnicoes && cardapio.guarnicoes.length > 0) {
-        cardapio.guarnicoes.forEach((item, index) => {
-            const visivel = visibilidadeItens[`guarnicoes_${index}`] !== false;
-            if (!adminLogado && !visivel) return;
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
-
-            if (!adminLogado) {
-                itemDiv.onclick = function(e) {
-                    if (e.target.closest('.admin-controls')) return;
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        validarLimites(checkbox);
-                    }
-                };
-            }
-
-            itemDiv.innerHTML = `
-                <input type="checkbox" value="${item}" data-categoria="guarnicoes" data-index="${index}" onchange="validarLimites(this)">
-                <div class="item-info">
-                    <span class="item-nome">${item}</span>
-                </div>
-                ${adminLogado ? `
-                    <div class="admin-controls" onclick="event.stopPropagation()">
-                        <button class="btn-visibilidade" onclick="toggleVisibilidade('guarnicoes', ${index})">
-                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                        <button class="btn-edit" onclick="editarItem('guarnicoes', ${index})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-delete" onclick="excluirItem('guarnicoes', ${index})"><i class="fas fa-trash"></i></button>
-                    </div>
-                ` : ''}
-            `;
-
-            guarnicoesDiv.appendChild(itemDiv);
-        });
-    } else {
-        guarnicoesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma guarnição cadastrada</p>';
-    }
-
-    // ===== BEBIDAS =====
-    const bebidasDiv = document.getElementById('bebidas');
-    bebidasDiv.innerHTML = '';
-    if (cardapio.bebidas && cardapio.bebidas.length > 0) {
-        cardapio.bebidas.forEach((bebida, index) => {
-            const visivel = visibilidadeItens[`bebidas_${index}`] !== false;
-            if (!adminLogado && !visivel) return;
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
-
-            if (!adminLogado) {
-                itemDiv.onclick = function(e) {
-                    if (e.target.closest('.admin-controls')) return;
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        validarLimites(checkbox);
-                    }
-                };
-            }
-
-            itemDiv.innerHTML = `
-                <input type="checkbox" value="${bebida.nome}" data-categoria="bebidas" data-index="${index}" onchange="validarLimites(this)">
-                <div class="item-info">
-                    <span class="item-nome">${bebida.nome}</span>
-                    <span class="item-valor">R$ ${bebida.valor.toFixed(2)}</span>
-                </div>
-                ${adminLogado ? `
-                    <div class="admin-controls" onclick="event.stopPropagation()">
-                        <button class="btn-visibilidade" onclick="toggleVisibilidade('bebidas', ${index})">
-                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                        ${nivelAcesso === 'master' ? `
-                            <button class="btn-edit" onclick="editarItem('bebidas', ${index})"><i class="fas fa-edit"></i></button>
-                            <button class="btn-delete" onclick="excluirItem('bebidas', ${index})"><i class="fas fa-trash"></i></button>
-                            <button class="btn-valor" onclick="editarValorBebida(${index})"><i class="fas fa-dollar-sign"></i></button>
-                        ` : ''}
-                    </div>
-                ` : ''}
-            `;
-
-            bebidasDiv.appendChild(itemDiv);
-        });
-    } else {
-        bebidasDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma bebida cadastrada</p>';
-    }
+        carnesDiv.appendChild(itemDiv);
+    });
+} else {
+    carnesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma carne cadastrada</p>';
 }
-// ===== RENDERIZAR ACRÉSCIMOS =====
-function renderizarAcrescimos() {
-    const div = document.getElementById('acrescimos');
-    div.innerHTML = '';
-    
-    if (acrescimos) {
-        acrescimos.forEach((item, index) => {
-            const visivel = visibilidadeAcrescimos[`acrescimo_${index}`] !== false;
-            if (!adminLogado && !visivel) return;
 
-            // Criar um ID único para este card
-            const cardId = `acrescimo_card_${index}`;
+// ===== ACOMPANHAMENTOS =====
+const acompanhamentosDiv = document.getElementById('acompanhamentos');
+acompanhamentosDiv.innerHTML = '';
+if (cardapio.acompanhamentos && cardapio.acompanhamentos.length > 0) {
+    cardapio.acompanhamentos.forEach((item, index) => {
+        const visivel = visibilidadeItens[`acompanhamentos_${index}`] !== false;
+        if (!adminLogado && !visivel) return;
 
-            div.innerHTML += `
-                <div class="item-card ${!visivel ? 'oculto' : ''}" id="${cardId}" onclick="marcarAcrescimo('${cardId}', event)">
-                    <input type="checkbox" value="${item.nome}" data-valor="${item.valor}" onchange="atualizarTotal()">
-                    <div class="item-info">
-                        <span class="item-nome">${item.nome}</span>
-                        <span class="item-valor">R$ ${item.valor.toFixed(2)}</span>
-                    </div>
-                    ${adminLogado ? `
-                        <div class="admin-controls" onclick="event.stopPropagation()">
-                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidadeAcrescimo(${index})">
-                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                            </button>
-                            ${nivelAcesso === 'master' ? `
-                                <button class="btn-edit" onclick="editarAcrescimo(${index})"><i class="fas fa-edit"></i></button>
-                                <button class="btn-delete" onclick="excluirAcrescimo(${index})"><i class="fas fa-trash"></i></button>
-                                <button class="btn-valor" onclick="editarValorAcrescimo(${index})"><i class="fas fa-dollar-sign"></i></button>
-                            ` : ''}
-                        </div>
+        const isSemArroz = item === 'Sem Arroz';
+        const valorExibir = isSemArroz ? `<span class="item-valor">R$ ${config.valorSemArroz.toFixed(2)}</span>` : '';
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+
+        // SÓ adiciona evento de clique se NÃO for admin
+        if (!adminLogado) {
+            itemDiv.addEventListener('click', function(e) {
+                if (e.target.closest('.admin-controls')) return;
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    validarLimites(checkbox);
+                }
+            });
+        }
+
+        itemDiv.innerHTML = `
+            <input type="checkbox" value="${item}" data-categoria="acompanhamentos" data-index="${index}" onchange="validarLimites(this)">
+            <div class="item-info">
+                <span class="item-nome">${item}</span>
+                ${valorExibir}
+            </div>
+            ${adminLogado ? `
+                <div class="admin-controls" onclick="event.stopPropagation()">
+                    <button class="btn-visibilidade" onclick="toggleVisibilidade('acompanhamentos', ${index})">
+                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                    </button>
+                    <button class="btn-edit" onclick="editarItem('acompanhamentos', ${index})"><i class="fas fa-edit"></i></button>
+                    ${!isSemArroz ? `<button class="btn-delete" onclick="excluirItem('acompanhamentos', ${index})"><i class="fas fa-trash"></i></button>` : ''}
+                    ${isSemArroz && nivelAcesso === 'master' ? `
+                        <button class="btn-valor" onclick="editarValorSemArroz()"><i class="fas fa-dollar-sign"></i></button>
                     ` : ''}
                 </div>
-            `;
-        });
-    }
+            ` : ''}
+        `;
+
+        acompanhamentosDiv.appendChild(itemDiv);
+    });
+} else {
+    acompanhamentosDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum acompanhamento cadastrado</p>';
+}
+// ===== FEIJOES =====
+const feijoesDiv = document.getElementById('feijoes');
+feijoesDiv.innerHTML = '';
+if (cardapio.feijoes && cardapio.feijoes.length > 0) {
+    cardapio.feijoes.forEach((item, index) => {
+        const visivel = visibilidadeItens[`feijoes_${index}`] !== false;
+        if (!adminLogado && !visivel) return;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+
+        // SÓ adiciona evento de clique se NÃO for admin
+        if (!adminLogado) {
+            itemDiv.addEventListener('click', function(e) {
+                if (e.target.closest('.admin-controls')) return;
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    validarLimites(checkbox);
+                }
+            });
+        }
+
+        itemDiv.innerHTML = `
+            <input type="checkbox" value="${item}" data-categoria="feijoes" data-index="${index}" onchange="validarLimites(this)">
+            <div class="item-info">
+                <span class="item-nome">${item}</span>
+            </div>
+            ${adminLogado ? `
+                <div class="admin-controls" onclick="event.stopPropagation()">
+                    <button class="btn-visibilidade" onclick="toggleVisibilidade('feijoes', ${index})">
+                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                    </button>
+                    <button class="btn-edit" onclick="editarItem('feijoes', ${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="excluirItem('feijoes', ${index})"><i class="fas fa-trash"></i></button>
+                </div>
+            ` : ''}
+        `;
+
+        feijoesDiv.appendChild(itemDiv);
+    });
+} else {
+    feijoesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum feijão cadastrado</p>';
 }
 
+// ===== SALADAS =====
+const saladasDiv = document.getElementById('saladas');
+saladasDiv.innerHTML = '';
+if (cardapio.saladas && cardapio.saladas.length > 0) {
+    cardapio.saladas.forEach((item, index) => {
+        const visivel = visibilidadeItens[`saladas_${index}`] !== false;
+        if (!adminLogado && !visivel) return;
 
-// ===== RENDERIZAR ACRÉSCIMOS 
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+
+        // SÓ adiciona evento de clique se NÃO for admin
+        if (!adminLogado) {
+            itemDiv.addEventListener('click', function(e) {
+                if (e.target.closest('.admin-controls')) return;
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    validarLimites(checkbox);
+                }
+            });
+        }
+
+        itemDiv.innerHTML = `
+            <input type="checkbox" value="${item}" data-categoria="saladas" data-index="${index}" onchange="validarLimites(this)">
+            <div class="item-info">
+                <span class="item-nome">${item}</span>
+            </div>
+            ${adminLogado ? `
+                <div class="admin-controls" onclick="event.stopPropagation()">
+                    <button class="btn-visibilidade" onclick="toggleVisibilidade('saladas', ${index})">
+                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                    </button>
+                    <button class="btn-edit" onclick="editarItem('saladas', ${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="excluirItem('saladas', ${index})"><i class="fas fa-trash"></i></button>
+                </div>
+            ` : ''}
+        `;
+
+        saladasDiv.appendChild(itemDiv);
+    });
+} else {
+    saladasDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma salada cadastrada</p>';
+}
+// ===== GUARNIÇÕES =====
+const guarnicoesDiv = document.getElementById('guarnicoes');
+guarnicoesDiv.innerHTML = '';
+if (cardapio.guarnicoes && cardapio.guarnicoes.length > 0) {
+    cardapio.guarnicoes.forEach((item, index) => {
+        const visivel = visibilidadeItens[`guarnicoes_${index}`] !== false;
+        if (!adminLogado && !visivel) return;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+
+        // SÓ adiciona evento de clique se NÃO for admin
+        if (!adminLogado) {
+            itemDiv.addEventListener('click', function(e) {
+                if (e.target.closest('.admin-controls')) return;
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    validarLimites(checkbox);
+                }
+            });
+        }
+
+        itemDiv.innerHTML = `
+            <input type="checkbox" value="${item}" data-categoria="guarnicoes" data-index="${index}" onchange="validarLimites(this)">
+            <div class="item-info">
+                <span class="item-nome">${item}</span>
+            </div>
+            ${adminLogado ? `
+                <div class="admin-controls" onclick="event.stopPropagation()">
+                    <button class="btn-visibilidade" onclick="toggleVisibilidade('guarnicoes', ${index})">
+                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                    </button>
+                    <button class="btn-edit" onclick="editarItem('guarnicoes', ${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="excluirItem('guarnicoes', ${index})"><i class="fas fa-trash"></i></button>
+                </div>
+            ` : ''}
+        `;
+
+        guarnicoesDiv.appendChild(itemDiv);
+    });
+} else {
+    guarnicoesDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma guarnição cadastrada</p>';
+}
+// ===== BEBIDAS =====
+const bebidasDiv = document.getElementById('bebidas');
+bebidasDiv.innerHTML = '';
+if (cardapio.bebidas && cardapio.bebidas.length > 0) {
+    cardapio.bebidas.forEach((bebida, index) => {
+        const visivel = visibilidadeItens[`bebidas_${index}`] !== false;
+        if (!adminLogado && !visivel) return;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+
+        // SÓ adiciona evento de clique se NÃO for admin
+        if (!adminLogado) {
+            itemDiv.addEventListener('click', function(e) {
+                if (e.target.closest('.admin-controls')) return;
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    validarLimites(checkbox);
+                }
+            });
+        }
+
+        itemDiv.innerHTML = `
+            <input type="checkbox" value="${bebida.nome}" data-categoria="bebidas" data-index="${index}" onchange="validarLimites(this)">
+            <div class="item-info">
+                <span class="item-nome">${bebida.nome}</span>
+                <span class="item-valor">R$ ${bebida.valor.toFixed(2)}</span>
+            </div>
+            ${adminLogado ? `
+                <div class="admin-controls" onclick="event.stopPropagation()">
+                    <button class="btn-visibilidade" onclick="toggleVisibilidade('bebidas', ${index})">
+                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                    </button>
+                    ${nivelAcesso === 'master' ? `
+                        <button class="btn-edit" onclick="editarItem('bebidas', ${index})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete" onclick="excluirItem('bebidas', ${index})"><i class="fas fa-trash"></i></button>
+                        <button class="btn-valor" onclick="editarValorBebida(${index})"><i class="fas fa-dollar-sign"></i></button>
+                    ` : ''}
+                </div>
+            ` : ''}
+        `;
+
+        bebidasDiv.appendChild(itemDiv);
+    });
+} else {
+    bebidasDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma bebida cadastrada</p>';
+}
+}
+// ===== RENDERIZAR ACRÉSCIMOS (CORRIGIDO) =====
 function renderizarAcrescimos() {
     const div = document.getElementById('acrescimos');
     div.innerHTML = '';
-    
+
     if (acrescimos && acrescimos.length > 0) {
         acrescimos.forEach((item, index) => {
             const visivel = visibilidadeAcrescimos[`acrescimo_${index}`] !== false;
             if (!adminLogado && !visivel) return;
-            
+
             const itemDiv = document.createElement('div');
             itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
-            
-            // Se NÃO for admin, clica no card todo para marcar
+
+            // SÓ adiciona evento de clique se NÃO for admin
             if (!adminLogado) {
-                itemDiv.onclick = function(e) {
-                    // Se clicou nos botões de admin, não marca
+                itemDiv.addEventListener('click', function(e) {
                     if (e.target.closest('.admin-controls')) return;
+                    if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
                     
                     const checkbox = this.querySelector('input[type="checkbox"]');
                     if (checkbox) {
                         checkbox.checked = !checkbox.checked;
                         atualizarTotal();
                     }
-                };
+                });
             }
-            
+
             itemDiv.innerHTML = `
                 <input type="checkbox" value="${item.nome}" data-valor="${item.valor}" onchange="atualizarTotal()">
                 <div class="item-info">
@@ -1419,7 +1396,68 @@ function renderizarAcrescimos() {
                     </div>
                 ` : ''}
             `;
-            
+
+            div.appendChild(itemDiv);
+        });
+    } else {
+        div.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum acréscimo cadastrado</p>';
+    }
+}
+
+
+// ===== RENDERIZAR ACRÉSCIMOS (CORRIGIDO - CHECKBOX FUNCIONA) =====
+function renderizarAcrescimos() {
+    const div = document.getElementById('acrescimos');
+    div.innerHTML = '';
+
+    if (acrescimos && acrescimos.length > 0) {
+        acrescimos.forEach((item, index) => {
+            const visivel = visibilidadeAcrescimos[`acrescimo_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+
+            // Se NÃO for admin, configura o clique no card
+            if (!adminLogado) {
+                itemDiv.addEventListener('click', function(e) {
+                    // Se clicou nos botões de admin, não marca
+                    if (e.target.closest('.admin-controls')) return;
+                    
+                    // Se clicou DIRETAMENTE no checkbox, DEIXA ELE AGIR SOZINHO
+                    if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                        return; // Não faz nada, deixa o checkbox funcionar naturalmente
+                    }
+                    
+                    // Se clicou em qualquer outra parte do card, marca/desmarca
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        atualizarTotal();
+                    }
+                });
+            }
+
+            itemDiv.innerHTML = `
+                <input type="checkbox" value="${item.nome}" data-valor="${item.valor}" onchange="atualizarTotal()">
+                <div class="item-info">
+                    <span class="item-nome">${item.nome}</span>
+                    <span class="item-valor">R$ ${item.valor.toFixed(2)}</span>
+                </div>
+                ${adminLogado ? `
+                    <div class="admin-controls" onclick="event.stopPropagation()">
+                        <button class="btn-visibilidade" onclick="toggleVisibilidadeAcrescimo(${index})">
+                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                        </button>
+                        ${nivelAcesso === 'master' ? `
+                            <button class="btn-edit" onclick="editarAcrescimo(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="excluirAcrescimo(${index})"><i class="fas fa-trash"></i></button>
+                            <button class="btn-valor" onclick="editarValorAcrescimo(${index})"><i class="fas fa-dollar-sign"></i></button>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            `;
+
             div.appendChild(itemDiv);
         });
     } else {
