@@ -750,33 +750,46 @@
             document.getElementById('totalCancelado').textContent = stats.cancelado;
         }
 
-        // ===== FILTRAR PEDIDOS =====
-        function filtrarPedidos(filtro, event = null) {
-            filtroAtual = filtro;
-            
-            document.querySelectorAll('.filtro-btn').forEach(btn => {
-                btn.classList.remove('ativo');
-            });
-            if (event) event.target.classList.add('ativo');
+        
+// ===== FILTRAR PEDIDOS =====
+    function filtrarPedidos(filtro, event = null) {
+    filtroAtual = filtro;
 
-            let resultado = [];
-            
-            if (filtro === 'todos') {
-                resultado = todosPedidos.filter(p => ultimos2Dias(p.data));
-            } 
-            else if (filtro === 'entregue') {
-                resultado = todosPedidos.filter(p => p.status === 'entregue' && ultimos2Dias(p.data));
-            }
-            else {
-                resultado = todosPedidos.filter(p => p.status === filtro);
-            }
-            
-            // Ordenar (mais recentes primeiro)
-            resultado.sort((a, b) => new Date(b.data) - new Date(a.data));
-            
-            renderizarPedidos(resultado);
-        }
+    // Remove a classe 'ativo' de todos os botões de filtro
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.classList.remove('ativo');
+    });
 
+    // Adiciona a classe 'ativo' ao botão clicado, se existir
+    if (event) {
+        event.target.classList.add('ativo');
+    }
+
+    let resultado = [];
+
+    // Aplica o filtro baseado no tipo selecionado
+    if (filtro === 'todos') {
+        resultado = todosPedidos.filter(p => ultimos2Dias(p.data));
+    } 
+    else if (filtro === 'entregue' || filtro === 'cancelado' || filtro === 'saiu') {
+        resultado = todosPedidos.filter(p => 
+            p.status === filtro && ultimos2Dias(p.data)
+        );
+    }
+    else {
+        resultado = todosPedidos.filter(p => 
+            p.status === filtro
+        );
+    }
+
+    // Ordenar os resultados (mais recentes primeiro)
+    resultado.sort((a, b) => 
+        new Date(b.data) - new Date(a.data)
+    );
+
+    // Renderizar os pedidos filtrados
+    renderizarPedidos(resultado);
+}
         // ===== FORMATAR ENDEREÇO COMPLETO =====
         function getEnderecoCompleto(pedido) {
             if (!pedido.cliente) return 'Não informado';
@@ -982,7 +995,8 @@ function imprimirPedido(pedidoId) {
         let itemHtml = `
             <div style="margin: 15px 0; border-bottom: 1px dashed #800020; padding-bottom: 10px;">
                 <div style="font-weight: bold; color: #800020; margin-bottom: 5px;">━━━━━━ REFEIÇÃO ${idx + 1} ━━━━━━</div>
-        `;
+            <div style="margin-left: 10px; color: #800020;">⭐ Valor da Refeição : R$ ${valorPrato.toFixed(2)}</div>  
+    `;
 
         // Carnes
         if (item.carnes?.length) {
