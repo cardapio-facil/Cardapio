@@ -2115,6 +2115,7 @@ function buscarCepSilencioso() {
                 let subtotalItem = valorPrato;
                 
                 mensagem += `\n━━━━━━ *REFEIÇÃO ${idx + 1}* ━━━━━━\n`;
+                mensagem += `💵 *Valor incial da refeição:* R$ ${valorPrato.toFixed(2)}\n`;
                 mensagem += `🥩 Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
                 mensagem += `🍚 Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
                 
