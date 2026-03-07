@@ -1009,7 +1009,7 @@ function imprimirPedido(pedidoId) {
 
             // Verifica se tem "Sem Arroz" (adicional)
             if (item.acompanhamentos.includes('Sem Arroz')) {
-                const valorSemArroz = 2.00; // Ajuste conforme seu valor
+                const valorSemArroz = config.valorSemArroz // Ajuste conforme seu valor
                 itemHtml += `<div style="margin-left: 20px;">└─ + Sem Arroz: R$ ${valorSemArroz.toFixed(2)}</div>`;
                 subtotalItem += valorSemArroz;
             }
