@@ -2444,24 +2444,47 @@ function enviarWhatsApp() {
     // ===== SALVAR NO FIREBASE =====
     dbRef.child('pedidos/' + pedidoId).set(pedidoData)
         .then(() => {
+    // ===== VERIFICAR SE É CELULAR =====
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobile = userAgent.includes('android') || 
+                     userAgent.includes('iphone') || 
+                     userAgent.includes('ipad') || 
+                     userAgent.includes('ipod') || 
+                     userAgent.includes('blackberry') || 
+                     userAgent.includes('iemobile') || 
+                     userAgent.includes('opera mini');
+    
+    if (isMobile) {
+        // ===== CELULAR: abre WhatsApp =====
+        const mensagem = gerarMensagemWhatsApp();
+        const linkWhatsApp = `https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`;
+        window.open(linkWhatsApp, '_blank');
+        
+        alert("✅ Pedido registrado! WhatsApp aberto para seu historico.");
+    } else {
+        // ===== COMPUTADOR: só mostra mensagem =====
+        alert(
+            "✅ PEDIDO REGISTRADO COM SUCESSO!\n\n" +
+            "Seu pedido já está em nosso sistema.\n" +
+            "Em breve entraremos em contato para confirmar."
+        );
+    }
 
-            alert('Pedido enviado com sucesso!');
+    // Limpar pedidos
+    pedidosAtuais = [];
+    atualizarPainelPedidos();
 
-            // Limpar pedidos
-            pedidosAtuais = [];
-            atualizarPainelPedidos();
-
-            // Limpar formulário
-            document.getElementById('nomeCliente').value = '';
-            document.getElementById('telefone').value = '';
-            document.getElementById('cep').value = '';
-            document.getElementById('rua').value = '';
-            document.getElementById('numero').value = '';
-            document.getElementById('bairro').value = '';
-            document.getElementById('cidade').value = '';
-            document.getElementById('complemento').value = '';
-            document.getElementById('referencia').value = '';
-        })
+    // Limpar formulário
+    document.getElementById('nomeCliente').value = '';
+    document.getElementById('telefone').value = '';
+    document.getElementById('cep').value = '';
+    document.getElementById('rua').value = '';
+    document.getElementById('numero').value = '';
+    document.getElementById('bairro').value = '';
+    document.getElementById('cidade').value = '';
+    document.getElementById('complemento').value = '';
+    document.getElementById('referencia').value = '';
+})
         .catch(error => {
             alert('Erro ao salvar pedido: ' + error.message);
         });
