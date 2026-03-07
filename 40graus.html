@@ -903,7 +903,16 @@
             </button>
         </div>
     </div>
-
+    <!-- MENSAGEM PERSONALIZADA REUTILIZÁVEL -->
+  <div id="mensagemConfirmacao" class="mensagem-confirmacao" style="display: none;">
+    <div class="mensagem-content">
+        <div class="mensagem-icon" id="mensagemIcon">✅</div>
+        <div class="mensagem-titulo" id="mensagemTitulo">Pedido Registrado!</div>
+        <div class="mensagem-texto" id="mensagemTexto">Seu pedido já está em nosso sistema.</div>
+        <div class="mensagem-subtexto" id="mensagemSubtexto"></div>
+        <button class="mensagem-btn" onclick="fecharMensagem()">OK</button>
+    </div>
+ </div>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -1734,8 +1743,8 @@ function renderizarAcrescimos() {
             if (categoria === 'carnes') {
                 const selecionadas = document.querySelectorAll('#carnes input:checked');
                 if (selecionadas.length > 1) {
-                    alert('Selecione apenas 1 carne!');
-                    checkbox.checked = false;
+              mostrarMensagem('aviso', 'Limite excedido', 'Selecione apenas 1 carne!');
+              checkbox.checked = false;
                 }
             } else if (categoria === 'feijoes') {
                 const selecionadas = document.querySelectorAll('#feijoes input:checked');
@@ -2534,7 +2543,55 @@ function enviarWhatsApp() {
             const ano = data.getFullYear();
             document.getElementById('dataMenu').innerHTML = `📅 ${dia}/${mes}/${ano}`;
         }
+          // ===== FUNÇÃO REUTILIZÁVEL PARA MOSTRAR MENSAGENS =====
+        function mostrarMensagem(tipo, titulo, texto, subtexto = '') {
+            const mensagemDiv = document.getElementById('mensagemConfirmacao');
+            const iconDiv = document.getElementById('mensagemIcon');
+            
+            // Definir ícone conforme o tipo
+            switch(tipo) {
+                case 'sucesso':
+                    iconDiv.innerHTML = '✅';
+                    break;
+                case 'erro':
+                    iconDiv.innerHTML = '❌';
+                    break;
+                case 'aviso':
+                    iconDiv.innerHTML = '⚠️';
+                    break;
+                case 'info':
+                    iconDiv.innerHTML = 'ℹ️';
+                    break;
+                case 'pedido':
+                    iconDiv.innerHTML = '🎉';
+                    break;
+                case 'whatsapp':
+                    iconDiv.innerHTML = '📱';
+                    break;
+                default:
+                    iconDiv.innerHTML = '✅';
+            }
+            
+            // Definir os textos
+            document.getElementById('mensagemTitulo').textContent = titulo;
+            document.getElementById('mensagemTexto').textContent = texto;
+            document.getElementById('mensagemSubtexto').textContent = subtexto;
+            
+            // Mostrar a mensagem
+            mensagemDiv.style.display = 'flex';
+            
+            // Fechar com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    fecharMensagem();
+                }
+            });
+        }
 
+        function fecharMensagem() {
+            document.getElementById('mensagemConfirmacao').style.display = 'none';
+        }
+        
         // ===== EVENT LISTENERS =====
         document.getElementById('horaAbre').addEventListener('change', function() {
             if (!adminLogado) {
