@@ -1808,7 +1808,8 @@ function renderizarAcrescimos() {
 
             pedidosAtuais.forEach((prato, index) => {
                 let subtotal = valorPrato;
-
+                
+                let refeicaoHTML = `<div><small>⭐ Refeição: R$ ${valorPrato.toFixed(2)}</small></div>`;
                 let acompanhamentosHTML = `<div><small>🍚 Acomp.: ${prato.acompanhamentos.join(', ')}</small></div>`;
 
                 if (prato.acompanhamentos.includes('Sem Arroz')) {
@@ -1841,6 +1842,7 @@ function renderizarAcrescimos() {
                             <button class="btn-remove-prato" onclick="removerPrato(${index})">🗑️ Excluir</button>
                         </div>
                         <strong>Refeição ${index + 1}</strong>
+                        ${refeicaoHTML} 
                         ${prato.carnes.length ? `<div><small>🥩 Carne: ${prato.carnes.join(', ')}</small></div>` : ''}
                         ${acompanhamentosHTML}
                         ${feijoesHTML}
