@@ -1541,7 +1541,7 @@ function renderizarCardapio() {
             if (adminLogado) {
                 adminMessage.style.display = 'block';
                 if (nivelAcesso === 'master') {
-                    adminMessage.innerHTML = '✅ Modo Master - Acesso total';
+                    adminMessage.innerHTML = '✅ Bem vindo - Modo Master - Acesso total';
                     document.getElementById('valorPrato').disabled = false;
                     document.getElementById('horaAbre').disabled = false;
                     document.getElementById('horaFecha').disabled = false;
@@ -1550,7 +1550,7 @@ function renderizarCardapio() {
                         botao.style.display = 'inline-flex';
                     });
                 } else {
-                    adminMessage.innerHTML = '🌟 Modo Visualização - Pode editar cardápio';
+                    adminMessage.innerHTML = '🌟 Bem vindo - Edite o  cardápio';
                     document.getElementById('valorPrato').disabled = true;
                     document.getElementById('horaAbre').disabled = false;
                     document.getElementById('horaFecha').disabled = false;
@@ -2438,7 +2438,7 @@ function enviarWhatsApp() {
                 statusDiv.className = 'horario-status aberto';
                 btnWhats.disabled = false;
             } else {
-                statusDiv.innerHTML = '🔴 FECHADO - Fora do horário';
+                statusDiv.innerHTML = '🔴 FECHADO ';
                 statusDiv.className = 'horario-status fechado';
                 btnWhats.disabled = true;
             }
