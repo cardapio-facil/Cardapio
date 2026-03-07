@@ -2381,7 +2381,7 @@ function enviarWhatsApp() {
     // ===== ENVIAR WHATSAPP =====
     const mensagem = gerarMensagemWhatsApp();
     const linkWhatsApp = `https://wa.me/${whatsappNumero}?text=${encodeURIComponent(mensagem)}`;
-    window.open(linkWhatsApp, '_blank');
+    
 
     // ===== GERAR ID DO PEDIDO =====
     const pedidoId = 'pedido_' + Date.now();
