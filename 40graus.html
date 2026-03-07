@@ -2115,7 +2115,7 @@ function buscarCepSilencioso() {
                 let subtotalItem = valorPrato;
                 
                 mensagem += `\n━━━━━━ *REFEIÇÃO ${idx + 1}* ━━━━━━\n`;
-                mensagem += `💵 *Valor incial da refeição:* R$ ${valorPrato.toFixed(2)}\n`;
+                mensagem += `💵 *Valor da refeição:* R$ ${valorPrato.toFixed(2)}\n`;
                 mensagem += `🥩 Carne: ${prato.carnes.join(', ') || 'Nenhuma'}\n`;
                 mensagem += `🍚 Acomp.: ${prato.acompanhamentos.join(', ')}\n`;
                 
@@ -2429,6 +2429,12 @@ function enviarWhatsApp() {
                 document.getElementById('freteValor').value = `R$ ${CONFIG.VALOR_FRETE_FIXO.toFixed(2)}`;
                 document.getElementById('freteValor').dataset.valor = CONFIG.VALOR_FRETE_FIXO;
             }
+            // ===== NOVO: Disparar busca de CEP automaticamente =====
+            setTimeout(() => {
+             if (document.getElementById('cep').value) {
+              buscarCep(); // Chama a função de busca direto
+            }
+         }, 800);
         };
     </script>
 </body>
