@@ -1743,8 +1743,25 @@ function renderizarAcrescimos() {
             if (categoria === 'carnes') {
                 const selecionadas = document.querySelectorAll('#carnes input:checked');
                 if (selecionadas.length > 1) {
-              mostrarMensagem('aviso', 'Limite excedido', 'Selecione apenas 1 carne!');
-              checkbox.checked = false;
+             if (categoria === 'carnes') {
+    const selecionadas = document.querySelectorAll('#carnes input:checked');
+    
+    if (selecionadas.length > 1) {
+        mostrarMensagem({
+            tipo: 'aviso',
+            titulo: 'Limite excedido',
+            texto: 'Selecione apenas 1 carne!',
+            tempo: 3000
+        });
+        
+        // Pequeno delay para a mensagem aparecer antes de desmarcar
+        setTimeout(() => {
+            checkbox.checked = false;
+        }, 100);
+        
+        return; // Importante: retorna para não continuar
+    }
+}
                 }
             } else if (categoria === 'feijoes') {
                 const selecionadas = document.querySelectorAll('#feijoes input:checked');
