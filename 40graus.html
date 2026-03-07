@@ -1334,40 +1334,98 @@ function renderizarCardapio() {
         bebidasDiv.innerHTML = '<p style="color: #999; padding: 10px;">Nenhuma bebida cadastrada</p>';
     }
 }
-        // ===== RENDERIZAR ACRÉSCIMOS =====
-        function renderizarAcrescimos() {
-            const div = document.getElementById('acrescimos');
-            div.innerHTML = '';
-            if (acrescimos) {
-                acrescimos.forEach((item, index) => {
-                    const visivel = visibilidadeAcrescimos[`acrescimo_${index}`] !== false;
-                    if (!adminLogado && !visivel) return;
-                    
-                    div.innerHTML += `
-                        <div class="item-card ${!visivel ? 'oculto' : ''}">
-                            <input type="checkbox" value="${item.nome}" data-valor="${item.valor}" onchange="atualizarTotal()">
-                            <div class="item-info">
-                                <span class="item-nome">${item.nome}</span>
-                                <span class="item-valor">R$ ${item.valor.toFixed(2)}</span>
-                            </div>
-                            ${adminLogado ? `
-                                <div class="admin-controls">
-                                    <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidadeAcrescimo(${index})">
-                                        <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                                    </button>
-                                    ${nivelAcesso === 'master' ? `
-                                        <button class="btn-edit" onclick="editarAcrescimo(${index})"><i class="fas fa-edit"></i></button>
-                                        <button class="btn-delete" onclick="excluirAcrescimo(${index})"><i class="fas fa-trash"></i></button>
-                                        <button class="btn-valor" onclick="editarValorAcrescimo(${index})"><i class="fas fa-dollar-sign"></i></button>
-                                    ` : ''}
-                                </div>
+// ===== RENDERIZAR ACRÉSCIMOS =====
+function renderizarAcrescimos() {
+    const div = document.getElementById('acrescimos');
+    div.innerHTML = '';
+    
+    if (acrescimos) {
+        acrescimos.forEach((item, index) => {
+            const visivel = visibilidadeAcrescimos[`acrescimo_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+
+            // Criar um ID único para este card
+            const cardId = `acrescimo_card_${index}`;
+
+            div.innerHTML += `
+                <div class="item-card ${!visivel ? 'oculto' : ''}" id="${cardId}" onclick="marcarAcrescimo('${cardId}', event)">
+                    <input type="checkbox" value="${item.nome}" data-valor="${item.valor}" onchange="atualizarTotal()">
+                    <div class="item-info">
+                        <span class="item-nome">${item.nome}</span>
+                        <span class="item-valor">R$ ${item.valor.toFixed(2)}</span>
+                    </div>
+                    ${adminLogado ? `
+                        <div class="admin-controls" onclick="event.stopPropagation()">
+                            <button class="btn-visibilidade ${!visivel ? 'oculto' : ''}" onclick="toggleVisibilidadeAcrescimo(${index})">
+                                <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            ${nivelAcesso === 'master' ? `
+                                <button class="btn-edit" onclick="editarAcrescimo(${index})"><i class="fas fa-edit"></i></button>
+                                <button class="btn-delete" onclick="excluirAcrescimo(${index})"><i class="fas fa-trash"></i></button>
+                                <button class="btn-valor" onclick="editarValorAcrescimo(${index})"><i class="fas fa-dollar-sign"></i></button>
                             ` : ''}
                         </div>
-                    `;
-                });
-            }
-        }
+                    ` : ''}
+                </div>
+            `;
+        });
+    }
+}
 
+
+// ===== RENDERIZAR ACRÉSCIMOS 
+function renderizarAcrescimos() {
+    const div = document.getElementById('acrescimos');
+    div.innerHTML = '';
+    
+    if (acrescimos && acrescimos.length > 0) {
+        acrescimos.forEach((item, index) => {
+            const visivel = visibilidadeAcrescimos[`acrescimo_${index}`] !== false;
+            if (!adminLogado && !visivel) return;
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `item-card ${!visivel ? 'oculto' : ''}`;
+            
+            // Se NÃO for admin, clica no card todo para marcar
+            if (!adminLogado) {
+                itemDiv.onclick = function(e) {
+                    // Se clicou nos botões de admin, não marca
+                    if (e.target.closest('.admin-controls')) return;
+                    
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        atualizarTotal();
+                    }
+                };
+            }
+            
+            itemDiv.innerHTML = `
+                <input type="checkbox" value="${item.nome}" data-valor="${item.valor}" onchange="atualizarTotal()">
+                <div class="item-info">
+                    <span class="item-nome">${item.nome}</span>
+                    <span class="item-valor">R$ ${item.valor.toFixed(2)}</span>
+                </div>
+                ${adminLogado ? `
+                    <div class="admin-controls" onclick="event.stopPropagation()">
+                        <button class="btn-visibilidade" onclick="toggleVisibilidadeAcrescimo(${index})">
+                            <i class="fas ${visivel ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                        </button>
+                        ${nivelAcesso === 'master' ? `
+                            <button class="btn-edit" onclick="editarAcrescimo(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="excluirAcrescimo(${index})"><i class="fas fa-trash"></i></button>
+                            <button class="btn-valor" onclick="editarValorAcrescimo(${index})"><i class="fas fa-dollar-sign"></i></button>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            `;
+            
+            div.appendChild(itemDiv);
+        });
+    } else {
+        div.innerHTML = '<p style="color: #999; padding: 10px;">Nenhum acréscimo cadastrado</p>';
+    }
+}
         // ===== FUNÇÕES ADMIN =====
         function toggleVisibilidade(categoria, index) {
             if (!adminLogado) return;
